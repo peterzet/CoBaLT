@@ -1,0 +1,32 @@
+Model properties
+
+delta:         1
+mu:            0
+model:         "lorentz"
+
+Iteration parameters
+
+kT min:        0 
+kT increment:  0
+kT max:        0
+
+U min:         2 
+U increment:   1 
+U max:         2
+
+x min:         0
+x increment:   0
+x max:         0
+
+Mesh parameters
+
+xMax:          500 
+n:             1000000
+
+Txt output parameters
+
+display:       1 
+range:         10 
+print mode:    0 
+export mode:   cx11
+physics:       EFF_freq
