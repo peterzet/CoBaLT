@@ -34,6 +34,8 @@ using namespace std;
 
 int main()
 {
+    // TO DO 1: initialize appropriate structure
+
     double delta, mu;
     string model;
 
@@ -50,6 +52,7 @@ int main()
     int print_mode;
     string export_mode, physics;
 
+    // TO do 1: end
 
    string name = "input";
 
