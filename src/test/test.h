@@ -1,8 +1,8 @@
 #ifndef TEST_H
 #define TEST_H
 
-
-#include "../Calculator.h"
+#include "../AWT.h"
+//#include "../Calculator.h"
 
 #include <iostream>         // standard library for reading inputs
 #include <fstream>          // standard library for showing outputs

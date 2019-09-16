@@ -1,5 +1,7 @@
 #include "../physics.h"
 
+#include "../AWT.h"
+
 #include <vector>
 #include <iostream>         // standard library for reading inputs
 #include <fstream>          // standard library for showing outputs
@@ -31,7 +33,7 @@ void test_convolutions(int n, double xMax, double range, string export_mode)
 
     string name;
 
-        // these four AWTs are used as help and storage place, are once allocated in the stack
+    // these four AWTs are used as help and storage place, are once allocated in the stack
     AWT aux1;
     aux1.initializeAWT(n, xMax, 0);
     AWT aux2;

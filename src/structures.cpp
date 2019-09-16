@@ -413,6 +413,7 @@ void multiply_tensor(tensor & in, complex<double> val)
     in.mmm = ( in.mmm ) * val;
 }
 
+/*
 void integrate_tensor(AWT & in, tensor & out, int ind1, int ind2, int ind3)
 {
     if( ind1 ==  1 && ind2 ==  1 && ind3 ==  1)  { out.ppp = Simpson(in); }
@@ -427,6 +428,7 @@ void integrate_tensor(AWT & in, tensor & out, int ind1, int ind2, int ind3)
 
     if( ind1 == -1 && ind2 == -1 && ind3 == -1)  { out.mmm = Simpson(in);  }
 }
+*/
 
 void subtract_tensors(tensor & out, tensor & in1, tensor & in2)
 {

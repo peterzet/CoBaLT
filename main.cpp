@@ -1,4 +1,3 @@
-#include "src/physics.h"
 #include "src/AWT.h"
 #include "src/structures.h"
 #include "src/test/test.h"
@@ -34,8 +33,8 @@ int main()
 	info input;
 	string name = "input";
 	input.importing(name);
-	
-	test_convolutions(info.n, info.xMax, info.range, info.export_mode);
+
+	test_convolutions(input.n, input.xMax, input.range, input.output_mode);
 
 	// various physical models are selcted here
 
