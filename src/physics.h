@@ -78,18 +78,27 @@ void KvertexFunction(double, AWT &, AWT &);
 void Xfunction(double, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &);
 
 void LPp_function(AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &);
+void LPp_dynamic2(AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &);      // second attempt on dynamic vertex
 void LLPp_function(AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &);
 void KPm_function(AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &);
+void KPm_dynamic2(AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &);      // second attempt on dynamic vertex
 
 void SigmaTherm_frequency(AWT &, AWT &, double, double, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &);
+void SigmaTherm_frequency_2(AWT &, AWT &, double, double);
 void SigmaSpec_frequency(AWT &, double, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &);
 
 
 // LORENTZ propagator and DOS
-void propagatorLorentz(double, double, AWT &, AWT &);
-void freePropagatorLorentz(double, double, AWT &);
-void propagatorLorentzShift(double, double, double, AWT &, AWT &);
-void freePropagatorLorentzShift(double, double, double, AWT &);
+void propagatorLorentz            (double, double, AWT &, AWT &);
+
+void propagatorLorentzShift       (double, double, complex<double>, AWT &, AWT &);
+void propagatorNssLorentzShift    (double, double, double, double, double, complex<double>, AWT &, AWT &);
+
+void freePropagatorLorentz        (double, double, AWT &);
+void freeNssPropagatorLorentz     (double, double, double, double, double, AWT &);
+
+void freePropagatorLorentzShift   (double, double, complex<double>, AWT &);
+void freeNssPropagatorLorentzShift(double, double, double, double, double, complex<double>, AWT &);
 
 void    DensityLorentz(double, double, AWT &, AWT &);
 
@@ -101,8 +110,8 @@ double real_norm(AWT &, AWT &);
 
 // TESTING OF MATHEMATICAL CORRECTNESS OF IMPLEMENTED CONVOLUTIONS AND MATSUBARA SUMS
 void test_matsubara_sums(int, double);
-void test_convolutions  (int, double, double, string);
 
+complex<double> shiftedG(int, int, AWT & );
 
 
 

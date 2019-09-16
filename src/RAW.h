@@ -1,4 +1,5 @@
-#include "aux.h"
+#ifndef RAWFUNCTION_H
+#define RAWFUNCTION_H
 
 
 #include <iostream>         // standard library for reading inputs
@@ -7,40 +8,30 @@
 #include <cassert>          // error handling library, function assert to terminate the program
 
 #include <vector>
-#include <complex> // implements the complex class to contain complex numbers in cartesian form
+#include <complex>          // implements the complex class to contain complex numbers in cartesian form
 #include <fftw3.h>          // FFTW library
 #include <cmath>            // declares some common mathematical operations and transformation
 #include <cstdlib>          // several general purpose functions, including dynamic memory management,
                             // random number generation, communication with the environment,
                             // integer arithmetics, searching, sorting and converting
 
+using namespace std;
 
-
-
-aux::aux()
+class rawF
 {
-    initialize_aux(0, 0, 0);
-}
+    public:
+        rawF();
+        ~rawF();
+        void initRawF(int, double, double);
 
-void aux::initialize_aux(int n, double xMax, double kT)
-{
-    aux1.initializeAWT(n, xMax, kT);
-    aux2.initializeAWT(n, xMax, kT);
-    aux3.initializeAWT(n, xMax, kT);
-    aux4.initializeAWT(n, xMax, kT);
-    aux5.initializeAWT(n, xMax, kT);
-    aux6.initializeAWT(n, xMax, kT);
+        int n;
+        double xMax;
+        double kT;
+        vector<complex <double> >  f;      // array of function values
 
-    aux1.set_zero();
-    aux2.set_zero();
-    aux3.set_zero();
-    aux4.set_zero();
-    aux5.set_zero();
-    aux6.set_zero();
-}
+        void exportFUNasFUN(string, int, double, double);
+        complex<double>& operator[](int);
 
-aux::~aux()
-{
+};
 
-}
-
+#endif // RAWFUNCTION_H

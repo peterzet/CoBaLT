@@ -2,9 +2,9 @@
 #define CALCULATOR_H
 
 //#include "ArrayWithTails.h"
-#include "raw.h"
-#include "awt.h"
-#include "aux.h"
+//#include "rawFunction.h"
+#include "AWT.h"
+#include "convert.h"
 
 #include <boost/math/tools/minima.hpp>
 
@@ -33,16 +33,13 @@ double NormL2(AWT &, AWT &);
 void asymmetryTest(rawF &, AWT &, int, int);
 
 // integrating functions
-double integrateImP(AWT &);
-double integrateReP(AWT &);
+complex<double> Trapezoid(AWT &);
+double Trapezoid_Im(AWT &);
+double Trapezoid_Re(AWT &);
 
-double integrateReLeft (AWT &);
-double integrateReRight(AWT &);
-double integrateImLeft (AWT &);
-double integrateImRight(AWT &);
-
-void convolution(AWT &, AWT &, AWT &, aux &, int, int);
-
+complex<double> Simpson(AWT &);
+double Simpson_Im(AWT &);
+double Simpson_Re(AWT &);
 
 
 #endif // CALCULATOR_H

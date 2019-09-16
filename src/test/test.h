@@ -1,8 +1,8 @@
-#ifndef EFFECTIVE_FREQ_H
-#define EFFECTIVE_FREQ_H
+#ifndef TEST_H
+#define TEST_H
 
 
-#include "Calculator.h"
+#include "../Calculator.h"
 
 #include <iostream>         // standard library for reading inputs
 #include <fstream>          // standard library for showing outputs
@@ -17,12 +17,9 @@
                             // random number generation, communication with the environment,
                             // integer arithmetics, searching, sorting and converting
 
+void test_convolutions  (int, double, double, string);
 
 
 
-// PARQUETS EFFECTIVE INTERACTION APPROX
-void Effective_frequency_dep(string);
 
-
-
-#endif // EFFECTIVE_FREQ_H
+#endif // TEST_H

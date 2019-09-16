@@ -43,9 +43,20 @@ double NormL2(AWT & G, AWT & Test)
 
 }
 
+// simple integration
+complex<double> Trapezoid(AWT & X)
+{
+    // trapezoidal rule is now applied, later changing to Simpson
+    double real = Trapezoid_Re(X);
+    double imag = Trapezoid_Im(X);
+    complex<double> u(0,1);
+    complex<double> integral = real + u*imag;
+
+    return integral;
+}
 
 // simple integration
-double integrateReP(AWT & X)
+double Trapezoid_Re(AWT & X)
 {
     // trapezoidal rule is now applied, later changing to Simpson
     double dx = X.xMax/X.n;
@@ -57,7 +68,7 @@ double integrateReP(AWT & X)
     return integral;
 }
 
-double integrateImP(AWT & X)
+double Trapezoid_Im(AWT & X)
 {
     // trapezoidal rule is now applied, later changing to Simpson
     double dx = X.xMax/X.n;
@@ -69,94 +80,91 @@ double integrateImP(AWT & X)
     return integral;
 }
 
+
 // simple integration
-double integrateReLeft(AWT & X)
+complex<double> Simpson(AWT & X)
 {
     // trapezoidal rule is now applied, later changing to Simpson
-    double dx = X.xMax/X.n;
-    double integral = 0.5*real(X.y[3*X.n+4]) * dx + 0.5*real(X.y[4*X.n+3])*dx;
-
-    // adding left part
-    for(int i=3*X.n+4; i<4*X.n+4; i++) integral = integral + real(X.y[i]) * dx;
-
-    return integral;
-}
-
-double integrateReRight(AWT & X)
-{
-    // trapezoidal rule is now applied, later changing to Simpson
-    double dx = X.xMax/X.n;
-    double integral = 0.5*real(X.y[0]) * dx + 0.5*real(X.y[X.n])*dx;
-
-    // adding right part
-    for(int i=0; i<X.n+1; i++) integral = integral + real(X.y[i]) * dx;
+    double real = Simpson_Re(X);
+    double imag = Simpson_Im(X);
+    complex<double> u(0,1);
+    complex<double> integral = real + u*imag;
 
     return integral;
 }
 
 
-double integrateImLeft(AWT & X)
+// Simpson's rule integrals
+double Simpson_Re(AWT & X)
 {
-    // trapezoidal rule is now applied, later changing to Simpson
     double dx = X.xMax/X.n;
-    double integral = 0.5*imag(X.y[3*X.n+4]) * dx + 0.5*imag(X.y[4*X.n+3])*dx;
 
-    // adding left part
-    for(int i=3*X.n+4; i<4*X.n+4; i++) integral = integral + imag(X.y[i]) * dx;
+    // correction for edge points
+    double integral = 1.0*real(X.y[X.n]) + 1.0*real(X.y[4*X.n+3]);
+
+
+    int point_iter = 0;
+    int simpson_coeff=2.0;
+
+    // negative part of the interval
+    for(int i=3*X.n+4; i<4*X.n+4; i++)
+    {
+        if( (point_iter %2) == 1)   simpson_coeff = 2.0;
+        else                        simpson_coeff = 4.0;
+
+        integral = integral + simpson_coeff * real(X.y[i]);
+        point_iter = point_iter + 1;
+    }
+
+    // positive part
+    for(int i=0; i<X.n; i++)
+    {
+        if( (point_iter %2) == 1)   simpson_coeff = 2.0;
+        else                        simpson_coeff = 4.0;
+
+        integral = integral + simpson_coeff * real(X.y[i]);
+        point_iter = point_iter + 1;
+    }
+
+    integral = integral * dx / 3.0;
 
     return integral;
+
 }
 
-double integrateImRight(AWT & X)
+// Simpson's rule integrals
+double Simpson_Im(AWT & X)
 {
-    // trapezoidal rule is now applied, later changing to Simpson
     double dx = X.xMax/X.n;
-    double integral = 0.5*imag(X.y[0]) * dx + 0.5*imag(X.y[X.n])*dx;
 
-    // adding right part
-    for(int i=0; i<X.n+1; i++) integral = integral + imag(X.y[i]) * dx;
+    // correction for edge points
+    double integral = +1.0*imag(X.y[X.n]) + 1.0*imag(X.y[4*X.n+3]);
+
+    int point_iter = 0;
+    int simpson_coeff=2.0;
+
+    // negative part of the interval
+    for(int i=3*X.n+4; i<4*X.n+4; i++)
+    {
+        if( (point_iter %2) == 1)   simpson_coeff = 2.0;
+        else                        simpson_coeff = 4.0;
+
+        integral = integral + simpson_coeff * imag(X.y[i]);
+        point_iter = point_iter + 1;
+    }
+
+    // positive part
+    for(int i=0; i<X.n; i++)
+    {
+        if( (point_iter %2) == 1)   simpson_coeff = 2.0;
+        else                        simpson_coeff = 4.0;
+
+        integral = integral + simpson_coeff * imag(X.y[i]);
+        point_iter = point_iter + 1;
+    }
+
+    integral = integral * dx / 3.0;
 
     return integral;
-}
 
-void convolution(AWT & out, AWT & X, AWT & Y, aux & help, int s1, int s2)
-{
-
-    if(s1*s2==-1)
-    {
-        help.aux1.conjugateY(X);
-        help.aux1.forwardDFT();
-        help.aux1.conjugateDFT(help.aux1);
-    }
-    else
-    {
-        help.aux1.loadAWTtoAWT(X);
-        if(X.dftKnown == 0 )     {  X.forwardDFT();  }        // DFT of X if not available
-    }
-
-    if(s1==-1)
-    {
-        help.aux2.conjugateY(Y);
-        help.aux2.forwardDFT();
-        help.aux2.conjugateDFT(help.aux2);
-    }
-    else
-    {
-        help.aux2.loadAWTtoAWT(Y);
-        if(Y.dftKnown == 0 )     {  Y.forwardDFT();  }        // DFT of X if not available
-    }
-
-    double dx = X.xMax/X.n;
-    for(int i=0; i<X.nn; i++)
-    {
-        out.yDFT[i] = help.aux1.yDFT[i] * help.aux2.yDFT[i] * dx;
-    }
-
-    // the output AWT is always set closed for next convolutionAWT instance
-    out.dftKnown = true;
-    out.backwardDFT();
-
-    // auxiliary AWTs are always set open for next convolutionAWT instance
-    help.aux1.dftKnown = false;
-    help.aux2.dftKnown = false;
 }

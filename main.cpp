@@ -1,10 +1,9 @@
-#include "Constants.h"
-#include "awt.h"
-#include "aux.h"
-#include "Methods.h"
-#include "physics.h"
-#include "EffectiveT0.h"
-#include "Effective_freq.h"
+#include "src/physics.h"
+#include "src/AWT.h"
+#include "src/Methods.h"
+#include "src/structures.h"
+#include "src/test/test.h"
+
 
 #include <boost/math/tools/minima.hpp>
 #include <cassert>          // error handling library, function assert to terminate the program
@@ -29,26 +28,18 @@
 
 using namespace std;
 
+//double PII = 3.14;
+
 
 
 int main()
 {
-
-
-    double delta;
-    double mu;
+    double delta, mu;
     string model;
 
-    double kT_min;
-    double kT_increment;
-    double kT_max;
-
-    double U_min;
-    double U_increment;
-    double U_max;
-
-    double x_increment;
-    double x_max;
+    double kT_min, kT_increment, kT_max;
+    double U_min, U_increment, U_max;
+    double x_increment, x_max;
 
     // intialization of variables for mesh properties
     double xMax;
@@ -60,12 +51,9 @@ int main()
     string export_mode, physics;
 
 
+   string name = "input";
 
-
-
-
-    string name = "input";
-
+/*
     importInitial(name, delta, mu, model,
                   kT_min, kT_increment, kT_max,
                   U_min, U_increment, U_max,
@@ -83,10 +71,6 @@ int main()
                   print_mode, export_mode, physics);
 
 
-
-    name = "input";
-
-
     // intialization of variables which are then imputed by a txt file
 
     // previously initialized variables are set to values from the input file
@@ -97,17 +81,20 @@ int main()
                   xMax, n, display, range,
                   print_mode, export_mode, physics);
 
+*/
+
+
+    double Pi = 3.14159265359;
 
     //test_convolutions(n, xMax, range, export_mode);
-    //Effective_frequency_dep(name);
+    //dynamic_spins_half(name);
+    //Effective_dynamic_2(name);
+    //dynamic_spins_matrix(name);
+    //static_spins_matrix(name);
+    //static_spins_specs(name);
 
-    string callme;
-    AWT test;
-    test.initializeAWT(1000,10,0);
-    test.set_FD();
-    cout << test.nn << endl;
-    callme = "FD";
-    test.exportAWTasAWT(callme, 1, export_mode);
+    //static_Lp(name);
+    //static_T_zero(name);
 
 
     return 0;

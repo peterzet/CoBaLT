@@ -1,7 +1,7 @@
 #ifndef ARRAYWITHTAILS_H
 #define ARRAYWITHTAILS_H
 
-#include "raw.h"
+#include "RAW.h"
 
 #include <vector>
 #include <iostream>         // standard library for reading inputs
@@ -30,8 +30,10 @@ class AWT: public rawF
         ~AWT();                                    // deconstructor of the class object
 
         /////////////   STATISTICS  //////////////////////////////////////////////////////
+        //int n;
         int nn;                                    // primary variable, division of the mesh points
-        // n, xMax, kT are inherited from rawF
+        //double xMax;                               // primary variable, interval half length
+        //double kT;
 
         /////////////   MEMBERS   //////////////////////////////////////////////////////
         complex<double> * y;      // array of function values
@@ -39,7 +41,6 @@ class AWT: public rawF
         fftw_complex * yINTER;    // DFT of y
 
         ////////////////  FOURIER TRANSFORMs  ////////////////////////////////////////////
-        bool dftKnown;
         fftw_plan forwardFFT;
         fftw_plan backwardFFT;
         void forwardDFT();        // constructor of an empty function forwardDFT
@@ -48,12 +49,11 @@ class AWT: public rawF
 
         ////////////////  SET AWTs  ///////////////////////////
 
-        void set_zero();
+        void setZero();
         void set_real(double);
-        void set_imag(double);
-        void set_FD();
-        void set_BE();
-        void set_K3();
+        void setFD(int, double, double);
+        void setFDder(int, double, double);
+        void setBE(int, double, double);
 
         ////////////////   IMPORT/EXPORT    ///////////////////////////
         void importAWTasAWT(string &, double, double);
@@ -63,8 +63,10 @@ class AWT: public rawF
 
         void exportAWTasAWT(string &, int, string &);
         void exportAWTasFUN(string &, int, double, double, string &);
+        void exportDFTasFUN(string &, int, double, string &);
 
         void loadAWTtoAWT(AWT &);
+        void loadDFTtoAWT(AWT &);
         void loadFUNtoAWT(rawF &);
 
         void asymmetryTest(string &, int, int, int, double, string &);
@@ -76,7 +78,8 @@ class AWT: public rawF
 
         void AWTForwardDFT();
         void AWTBackDFT();
-
+        void Kernel3();
+        void cosine(double);
 
         void normalFDtimesIM(AWT &, AWT &);
         void inverseFDtimesIM(AWT &, AWT &);
@@ -91,6 +94,9 @@ class AWT: public rawF
         void deleteImag(AWT &);
         void KrammersKronig(AWT &, AWT &, AWT &, AWT &, AWT &, AWT &);
         void KrammersKronigDown(AWT &, AWT &, AWT &, AWT &, AWT &, AWT &);
+
+        void multiplyAWT(AWT &, AWT &);
+        void derivativeAWT(AWT &);
 
         ////////////////           OPERATIONS BETWEEN AWTs       ///////////////////////
 

@@ -1,4 +1,4 @@
-#include "raw.h"
+#include "RAW.h"
 
 
 #include <iostream>         // standard library for reading inputs
@@ -48,13 +48,13 @@ void rawF::exportFUNasFUN(string name, int div, double range, double mult)
     int limit=n*range/xMax;
 
     int i;
-
     // first the negative values are printed
     for(i = n -limit; i < n + limit; i=i+div)
     {
         output << (-n + i)*xMax/n << "  " << mult*real(f[i]) << "  " << mult*imag(f[i]) << "  " << endl;
     }
 }
+
 
 complex<double> & rawF::operator[](int i)
 {

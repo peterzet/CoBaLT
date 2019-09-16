@@ -134,7 +134,7 @@ void precision(double kT_min, double U_min, double x_increment, int & kT_precisi
 {
     // the number of decimals in kT_min is determined
     kT_precision = 0;
-    U_precision = 1;
+    U_precision = 2;
     x_precision = 1;
 
     /*double kT_ = kT_min;
@@ -228,7 +228,7 @@ void hartree_energies(double & Ehf,
         for( int iii = 3*Int.n+4; iii<4*Int.n+4; iii++ )
         Int.y[iii] = FD_0.y[iii]*imag(G_0.y[iii]);
 
-        n_0[j] = -2*integrateReP(Int)/Pi;
+        n_0[j] = -2*Trapezoid_Re(Int)/Pi;
 
         // total energy is calculated
 
@@ -241,7 +241,7 @@ void hartree_energies(double & Ehf,
         for( int iii = 3*Int.n+4; iii<4*Int.n+4; iii++ )
         Int.y[iii] = FD_0.y[iii]  * (   (iii-4*n-4)*factor_1 + x  ) / (   ((iii-4*n-4)*factor_1 + x)*((iii-4*n-4)*factor_1 + x)  + factor_2   ) ;
 
-        E_hf[j] = 2.0*integrateReP(Int)/Pi;
+        E_hf[j] = 2.0*Trapezoid_Re(Int)/Pi;
 
         // results are outputed
         string hartree = "Txt/Hartree/hartree";
@@ -320,7 +320,7 @@ void spectral_sigma_EFF(double U, double Lambda, AWT & PHI, AWT & GT, AWT & FD, 
 void SigmaTherm_frequency(AWT & SigmaTherm, AWT & Lambda, double U, double nT, AWT & GT, AWT & FD, AWT & BE, AWT & K3,
                         AWT & aux1, AWT & aux2, AWT & aux3, AWT & aux4, AWT & aux5, AWT & aux6)
 {
-
+    // theory from the end of august 2017
 	SigmaTherm.boseMatsubaraImP(GT, Lambda, 1, 1, FD, BE, aux1, aux2, aux3, aux4, aux5, aux6);
     SigmaTherm.KrammersKronig(SigmaTherm, K3, aux1, aux2, aux3, aux4);
 
@@ -329,9 +329,18 @@ void SigmaTherm_frequency(AWT & SigmaTherm, AWT & Lambda, double U, double nT, A
 	for(int i=3*SigmaTherm.n+4; i<4*SigmaTherm.n+4; i++ )       SigmaTherm.y[i] = nT*U/2.0 + SigmaTherm.y[i] ;
 }
 
+void SigmaTherm_frequency_2(AWT & SigmaTherm, AWT & Lambda, double U, double nT)
+{
+    // theory from the end of december 2017
+	for(int i=0;                i<SigmaTherm.n+1;   i++ )       SigmaTherm.y[i] = U/2 - (0.5 - nT)*Lambda.y[i] ;
+	for(int i=SigmaTherm.n+1;   i<3*SigmaTherm.n+3; i++ )       SigmaTherm.y[i] = 0;
+	for(int i=3*SigmaTherm.n+4; i<4*SigmaTherm.n+4; i++ )       SigmaTherm.y[i] = U/2 - (0.5 - nT)*Lambda.y[i] ;
+}
+
 void SigmaSpec_frequency(AWT & SigmaSpec, double U, AWT & LPp, AWT & GT, AWT & FD, AWT & BE, AWT & K3,
                         AWT & aux1, AWT & aux2, AWT & aux3, AWT & aux4, AWT & aux5, AWT & aux6)
 {
+	// theory from the end of september 2017
 	AWT help;
 	help.initializeAWT(GT.n, GT.xMax, GT.kT);
 	for(int i=0;          i<help.n+1;   i++ )       help.y[i] = -U*LPp.y[i] / ( 1.0 + LPp.y[i] ) ;
@@ -372,9 +381,6 @@ void LPp_function(AWT & LPp, AWT & Lambda, AWT & GT, AWT & FD, AWT & BE, AWT & K
     aux1.convolutionAWT(aux1, aux2, 1, -1, aux5, aux6);     // integral over real arguments
     aux1.multiplyAWT(aux1, -1/Pi);                          // multiply with proper factor
 
-    // this part keeps aux1 and aux2 free for next instance of convolutionAWT
-    aux1.dftKnown = false;
-    aux2.dftKnown = false;
 
     // SECOND PART is calculated
     for(int i=0;         i<GT.n+1;   i++ )       aux3.y[i] = FD.y[i] * imag( Lambda.y[i] * GT.y[i]);
@@ -389,16 +395,14 @@ void LPp_function(AWT & LPp, AWT & Lambda, AWT & GT, AWT & FD, AWT & BE, AWT & K
     aux2.convolutionAWT(aux3, aux4, -1, -1, aux5, aux6);    // integral over real arguments
     aux2.multiplyAWT(aux2, 1/Pi);                           // multiply with proper factor
 
-    // this part keeps aux2, aux3 and aux4 free for next instance of convolutionAWT
-    aux2.dftKnown = false;
-    aux3.dftKnown = false;
-    aux4.dftKnown = false;
 
     // first and second part are added tgether and stored in the out AWT
     for(int i=0; i < GT.nn; i++)         LPp.y[i] = aux1.y[i] + aux2.y[i];
 
     LPp.KrammersKronig(LPp, K3, aux1, aux2, aux3, aux4);
 }
+
+
 
 
 void LLPp_function(AWT & LLPp, AWT & Lambda, AWT & GT, AWT & FD, AWT & BE, AWT & K3,
@@ -432,9 +436,6 @@ void KPm_function(AWT & KPm, AWT & K, AWT & GT, AWT & FD, AWT & BE, AWT & K3,
     aux1.convolutionAWT(aux1, aux2, 1, 1, aux5, aux6);      // integral over real arguments
     aux1.multiplyAWT(aux1, -1/Pi);                          // multiply with proper factor
 
-    // this part keeps aux1 and aux2 free for next instance of convolutionAWT
-    aux1.dftKnown = false;
-    aux2.dftKnown = false;
 
     // SECOND PART is calculated
     for(int i=0;        i<K.n+1;   i++ )       aux3.y[i] = -1.0 * FD.y[i] * imag( K.y[4*K.n +4 -i ] * GT.y[4*K.n +4 -i ] );
@@ -449,10 +450,6 @@ void KPm_function(AWT & KPm, AWT & K, AWT & GT, AWT & FD, AWT & BE, AWT & K3,
     aux2.convolutionAWT(aux3, aux4, 1, -1, aux5, aux6);     // integral over real arguments
     aux2.multiplyAWT(aux2, -1/Pi);                          // multiply with proper factor
 
-    // this part keeps aux2, aux3 and aux4 free for next instance of convolutionAWT
-    aux2.dftKnown = false;
-    aux3.dftKnown = false;
-    aux4.dftKnown = false;
 
     // first and second part are added tgether and stored in the out AWT
     for(int i=0; i < K.nn; i++)         KPm.y[i] = aux1.y[i] + aux2.y[i];
@@ -471,6 +468,7 @@ void KPm_function(AWT & KPm, AWT & K, AWT & GT, AWT & FD, AWT & BE, AWT & K3,
 */
 
 }
+
 
 
 
@@ -534,7 +532,7 @@ void PsiFunction(AWT & Gtherm, AWT & Kvertex, AWT & BE, double & Psi)
     for( int i = 3*Gtherm.n+4; i < 4*Gtherm.n + 4;  i++ )
     Integrand.y[i] = BE.y[i] * imag(   Gtherm.y[i] * conj(Gtherm.y[4*Gtherm.n+4-i]) * conj(Kvertex.y[4*Gtherm.n+4-i])  )/Pi;
 
-    Psi = integrateReP(Integrand);
+    Psi = Trapezoid_Re(Integrand);
 }
 
 
@@ -624,6 +622,143 @@ void propagatorLorentz(double del, double x_, AWT & Gout, AWT & Sigma)
 
 }
 
+
+
+
+
+void propagatorLorentzShift(double del, double x_, complex<double> Shift, AWT & Gout, AWT & Sigma)
+{
+    double n = Gout.n;
+    double x = Gout.xMax;
+
+    for(int i=0; i<n+1; i++ )
+    {
+        //double del = 1e-7;
+        double xx = i*x/n;
+
+        double norm =  (  xx + x_ - real(Shift) - Sigma.y[i].real() )*(  xx + x_ - real(Shift) - Sigma.y[i].real()  )
+                    +  (    del - imag(Shift) - Sigma.y[i].imag()   )*(  del - imag(Shift) - Sigma.y[i].imag()      );
+
+        complex<double> u(
+                             ( xx + x_ - real(Shift) - Sigma.y[i].real()  )  /norm ,
+                            -(   del - imag(Shift) - Sigma.y[i].imag()    )  /norm
+                          );
+        Gout.y[i] = u;
+    }
+
+    for(int i=n+1; i<3*n+3; i++ )
+    {
+        complex<double> u( 0 , 0 );
+        Gout.y[i] = u;
+    }
+
+
+    for(int i=3*n+4; i<4*n+4; i++ )
+    {
+        //double del = 1e-7;
+        double xx = (i - 4*n -4) *x/n;
+
+        double norm =    (   xx + x_ - real(Shift) - Sigma.y[i].real() ) * (   xx + x_ - real(Shift) - Sigma.y[i].real() )
+                    +    (  del - imag(Shift) - Sigma.y[i].imag() ) * (  del - imag(Shift) - Sigma.y[i].imag() );
+
+        complex<double> u(
+                           (  xx + x_ - real(Shift) - Sigma.y[i].real()  )/norm,
+                          -(  del - imag(Shift) - Sigma.y[i].imag()  )/norm
+                         );
+        Gout.y[i] = u;
+    }
+
+}
+
+
+
+void propagatorNssLorentzShift(double del, double x_, double gap, double gammaS, double phi, complex<double> Shift, AWT & Gout, AWT & Sigma)
+{
+    double n = Gout.n;
+    double x = Gout.xMax;
+
+    double Pi = 3.14159265;
+
+    // SMALL SHIFT TO AVOID SINGULARITIES
+    gap = gap - 10e-12;
+
+
+    // POSITIVE FREQUENCIES
+    for(int i=0; i<n+1; i++ )
+    {
+        //double del = 1e-7;
+        double xx = i*x/n;
+
+
+        if( xx < gap)       // IN THE GAP
+        {
+            double norm =  (  xx + x_ - real(Shift) - Sigma.y[i].real() )*(  xx + x_ - real(Shift) - Sigma.y[i].real()  )
+                        +  (    del - imag(Shift) - Sigma.y[i].imag()   )*(  del - imag(Shift) - Sigma.y[i].imag()      );
+
+            complex<double> u(
+                             ( xx + x_ - real(Shift) - Sigma.y[i].real()  )  /norm ,
+                            -(   del - imag(Shift) - Sigma.y[i].imag()    )  /norm
+                          );
+            Gout.y[i] = u;
+        }
+        else                // OUT OF THE GAP
+        {
+            double norm =  (  xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + x_ - real(Shift) - Sigma.y[i].real() )
+                          *(  xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + x_ - real(Shift) - Sigma.y[i].real() )
+                        +  (    del - imag(Shift) - Sigma.y[i].imag()   )*(  del - imag(Shift) - Sigma.y[i].imag()      );
+
+            complex<double> u(
+                             ( xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + x_ - real(Shift) - Sigma.y[i].real() ) /norm,
+                            -(   del - imag(Shift) - Sigma.y[i].imag()    )  /norm
+                             );
+            Gout.y[i] = u;
+        }
+
+
+    }
+
+    // ZERO PADDING
+    for(int i=n+1; i<3*n+3; i++ )
+    {
+        complex<double> u( 0 , 0 );
+        Gout.y[i] = u;
+    }
+
+
+    // NEGATIVE FREQUENCIES
+    for(int i=3*n+4; i<4*n+4; i++ )
+    {
+        //double del = 1e-7;
+        double xx = (i - 4*n -4) *x/n;
+
+        if( xx > -1.0*gap)       // IN THE GAP
+        {
+            double norm =  (  xx + x_ - real(Shift) - Sigma.y[i].real() )*(  xx + x_ - real(Shift) - Sigma.y[i].real()  )
+                        +  (    del - imag(Shift) - Sigma.y[i].imag()   )*(  del - imag(Shift) - Sigma.y[i].imag()      );
+
+            complex<double> u(
+                             ( xx + x_ - real(Shift) - Sigma.y[i].real()  )  /norm ,
+                            -(   del - imag(Shift) - Sigma.y[i].imag()    )  /norm
+                          );
+            Gout.y[i] = u;
+        }
+        else                // OUT OF THE GAP
+        {
+            double norm =  (  xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + x_ - real(Shift) - Sigma.y[i].real() )
+                          *(  xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + x_ - real(Shift) - Sigma.y[i].real() )
+                        +  (    del - imag(Shift) - Sigma.y[i].imag()   )*(  del - imag(Shift) - Sigma.y[i].imag()      );
+
+            complex<double> u(
+                             ( xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + x_ - real(Shift) - Sigma.y[i].real() ) /norm,
+                            -(   del - imag(Shift) - Sigma.y[i].imag()    )  /norm
+                             );
+            Gout.y[i] = u;
+        }
+    }
+
+}
+
+
 void freePropagatorLorentz(double del, double mu, AWT & Gout)
 {
     double n = Gout.n;
@@ -668,7 +803,92 @@ void freePropagatorLorentz(double del, double mu, AWT & Gout)
 
 }
 
-void propagatorLorentzShift(double del, double mu, double ShiftIm, AWT & Gout, AWT & Sigma)
+
+void freeNssPropagatorLorentz(double del, double mu, double gap, double gammaS, double phi, AWT & Gout)
+{
+    double n = Gout.n;
+    double x = Gout.xMax;
+    double Pi = 3.14159265;
+
+    // SMALL SHIFT TO AVOID SINGULARITIES
+    gap = gap - 10e-12;
+
+
+    // POSITIVE FREQUENCIES
+    for(int i=0; i<n+1; i++ )
+    {
+        //double del = 1e-7;
+        double xx = i*x/n;
+
+        if(xx < gap)        // IN THE GAP
+        {
+            double norm =  (  xx + mu  )
+                          *(  xx + mu  )
+                        +  (   del     )*(   del     );
+
+            complex<double> u(
+                             ( xx + mu   )  /norm ,
+                            -(   del     )  /norm
+                          );
+            Gout.y[i] = u;
+        }
+        else             // OUT OF THE GAP
+        {
+            double norm =  (  xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + mu  )
+                          *(  xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + mu  )
+                        +  (   del     )*(   del     );
+
+            complex<double> u(
+                             ( xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + mu   )  /norm ,
+                            -(   del     )  /norm
+                          );
+            Gout.y[i] = u;
+        }
+    }
+
+    // ZERO PADDING
+    for(int i=n+1; i<3*n+3; i++ )
+    {
+        complex<double> u( 0 , 0 );
+        Gout.y[i] = u;
+    }
+
+    // NEGATIVE FREQUENCIES
+    for(int i=3*n+4; i<4*n+4; i++ )
+    {
+        //double del = 1e-7;
+        double xx = (i - 4*n -4) *x/n;
+
+        if(xx < gap)        // IN THE GAP
+        {
+            double norm =  (  xx + mu  )
+                          *(  xx + mu  )
+                        +  (   del     )*(   del     );
+
+            complex<double> u(
+                             ( xx + mu   )  /norm ,
+                            -(   del     )  /norm
+                          );
+            Gout.y[i] = u;
+        }
+        else             // OUT OF THE GAP
+        {
+            double norm =  (  xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + mu  )
+                          *(  xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + mu  )
+                        +  (   del     )*(   del     );
+
+            complex<double> u(
+                             ( xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + mu   )  /norm ,
+                            -(   del     )  /norm
+                          );
+            Gout.y[i] = u;
+        }
+    }
+
+}
+
+
+void freePropagatorLorentzShift(double del, double mu, complex<double> Shift, AWT & Gout)
 {
     double n = Gout.n;
     double x = Gout.xMax;
@@ -678,12 +898,12 @@ void propagatorLorentzShift(double del, double mu, double ShiftIm, AWT & Gout, A
         //double del = 1e-7;
         double xx = i*x/n;
 
-        double norm =  (       xx + mu - Sigma.y[i].real()   )*(  xx  + mu - Sigma.y[i].real()       )
-                    +  ( del + ShiftIm + Sigma.y[i].imag()   )*(  del + ShiftIm + Sigma.y[i].imag()  );
+        double norm =  ( xx + mu - real(Shift) ) * ( xx  + mu - real(Shift)  )
+                    +  (   del - imag(Shift)   ) * (    del - imag(Shift)    );
 
         complex<double> u(
-                             (    xx + mu - Sigma.y[i].real()         )  /norm,
-                            +(   del + ShiftIm + Sigma.y[i].imag()    )  /norm
+                             (   xx + mu  - real(Shift)   )  /norm,
+                            -(      del - imag(Shift)     )  /norm
                           );
         Gout.y[i] = u;
     }
@@ -700,60 +920,103 @@ void propagatorLorentzShift(double del, double mu, double ShiftIm, AWT & Gout, A
         //double del = 1e-7;
         double xx = (i - 4*n -4) *x/n;
 
-        double norm =  (       xx + mu - Sigma.y[i].real()   )*(  xx  + mu - Sigma.y[i].real()       )
-                    +  ( del + ShiftIm + Sigma.y[i].imag()   )*(  del + ShiftIm + Sigma.y[i].imag()  );
+        double norm =  ( xx + mu - real(Shift) ) * ( xx  + mu - real(Shift)  )
+                    +  (   del + imag(Shift)   ) * (    del + imag(Shift)    );
 
         complex<double> u(
-                             (    xx + mu - Sigma.y[i].real()         )  /norm,
-                            +(   del + ShiftIm + Sigma.y[i].imag()    )  /norm
+                             (   xx + mu  - real(Shift)   )  /norm,
+                            -(      del - imag(Shift)     )  /norm
                           );
         Gout.y[i] = u;
     }
 }
 
-void freePropagatorLorentzShift(double del, double mu, double ShiftIm, AWT & Gout)
+
+
+void freeNssPropagatorLorentzShift(double del, double mu, double gap, double gammaS, double phi, complex<double> Shift, AWT & Gout)
 {
     double n = Gout.n;
     double x = Gout.xMax;
 
+    double Pi = 3.14159265;
+
+    // SMALL SHIFT TO AVOID SINGULARITIES
+    gap = gap - 10e-12;
+
+
+    // POSITIVE FREQUENCIES
     for(int i=0; i<n+1; i++ )
     {
         //double del = 1e-7;
         double xx = i*x/n;
 
-        double norm =  (       xx + mu   )*(  xx  + mu    )
-                    +  ( del + ShiftIm   )*(  del + ShiftIm  );
+        if(xx < gap)        // IN THE GAP
+        {
+            double norm =  ( xx + mu - real(Shift) )
+                         * ( xx + mu - real(Shift)  )
+                         + (   del - imag(Shift)   ) * (    del - imag(Shift)    );
 
-        complex<double> u(
-                             (      xx + mu      )  /norm,
-                            +(   del + ShiftIm   )  /norm
-                          );
-        Gout.y[i] = u;
+            complex<double> u(
+                                 (   xx + mu  - real(Shift)   )  /norm,
+                                -(      del - imag(Shift)     )  /norm
+                              );
+            Gout.y[i] = u;
+        }
+        else                // OUT OF THE GAP
+        {
+            double norm =  ( xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + mu - real(Shift) )
+                         * ( xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + mu - real(Shift)  )
+                         + (   del - imag(Shift)   ) * (    del - imag(Shift)    );
+
+            complex<double> u(
+                                 (   xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + mu  - real(Shift)   )  /norm,
+                                -(      del - imag(Shift)     )  /norm
+                              );
+            Gout.y[i] = u;
+        }
     }
 
+    // ZERO PADDING
     for(int i=n+1; i<3*n+3; i++ )
     {
         complex<double> u( 0 , 0 );
         Gout.y[i] = u;
     }
 
-
+    // NEGATIVE FREQUENCIES
     for(int i=3*n+4; i<4*n+4; i++ )
     {
         //double del = 1e-7;
         double xx = (i - 4*n -4) *x/n;
 
-        double norm =  (       xx + mu    )*(    xx  + mu      )
-                    +  ( del + ShiftIm    )*(  del + ShiftIm   );
+        if(xx < gap)        // IN THE GAP
+        {
+            double norm =  ( xx + mu - real(Shift) )
+                         * ( xx + mu - real(Shift)  )
+                         + (   del - imag(Shift)   ) * (    del - imag(Shift)    );
 
-        complex<double> u(
-                             (    xx + mu       )  /norm,
-                            +(   del + ShiftIm  )  /norm
-                          );
-        Gout.y[i] = u;
+            complex<double> u(
+                                 (   xx + mu  - real(Shift)   )  /norm,
+                                -(      del - imag(Shift)     )  /norm
+                              );
+            Gout.y[i] = u;
+        }
+        else                // OUT OF THE GAP
+        {
+            double norm =  ( xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + mu - real(Shift) )
+                         * ( xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + mu - real(Shift)  )
+                         + (   del - imag(Shift)   ) * (    del - imag(Shift)    );
+
+            complex<double> u(
+                                 (   xx + gammaS * xx/( sqrt(xx*xx - gap*gap) ) * ( 1.0 - (gap/xx)  * cos(Pi*phi/2) ) + mu  - real(Shift)   )  /norm,
+                                -(      del - imag(Shift)     )  /norm
+                              );
+            Gout.y[i] = u;
+        }
     }
 }
 
+//////////////////////////////////////////////////
 // X function
 void Xfunction(double lambda, AWT & Gin, AWT & Phi, AWT & X, AWT & FD, AWT & BE, AWT & K3,
                         AWT & aux1, AWT & aux2, AWT & aux3, AWT & aux4, AWT & aux5, AWT & aux6)
@@ -930,7 +1193,7 @@ void kinetic_energy(double & Ekin, double Ehf, double U, double x, double nS, do
         Int.y[iii] = FD.y[iii] *     ( factor_3 ) / (  factor_3*factor_3  +  factor_4*factor_4 )    ;
     }
 
-    Ekin = 2.0*delta*integrateReP(Int)/Pi - Ehf;
+    Ekin = 2.0*delta*Trapezoid_Re(Int)/Pi - Ehf;
 }
 
 void correlation_energy(double & Eint, double U, double nT, AWT & GT, AWT & SigmaSpec, AWT & FD, AWT & Int)
@@ -948,7 +1211,7 @@ void correlation_energy(double & Eint, double U, double nT, AWT & GT, AWT & Sigm
     for( int iii = 3*Int.n+4;    iii<4*Int.n+4;   iii++ )
     Int.y[iii] =  FD.y[iii] * imag(  GT.y[iii] * SigmaSpec.y[iii]  );
 
-    Eint = -integrateReP(Int)/Pi + U*(0.5*nT)*(0.5*nT) ;
+    Eint = -Trapezoid_Re(Int)/Pi + U*(0.5*nT)*(0.5*nT) ;
 }
 
 void correlation_energy_alt(double & Eint, double U, double Lambda, double nT, AWT & PHI, AWT & BE, AWT & Int)
@@ -966,7 +1229,7 @@ void correlation_energy_alt(double & Eint, double U, double Lambda, double nT, A
     for( int i = 3*PHI.n+4; i < 4*PHI.n + 4;  i++ )
     Int.y[i] = BE.y[4*PHI.n+4-i] * imag(   PHI.y[i] * conj(PHI.y[4*PHI.n+4-i]) / ( 1.0 + Lambda * PHI.y[i]) );
 
-    Eint = U*(0.5*nT)*(0.5*nT) - U*Lambda*integrateReP(Int)/Pi ;
+    Eint = U*(0.5*nT)*(0.5*nT) - U*Lambda*Trapezoid_Re(Int)/Pi ;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1433,542 +1696,64 @@ void DensitySemiEl(double del, double mu, AWT & DensityOut, AWT & Sigma)
 
 double real_norm(AWT & X, AWT & Y)
 {
-	double norm;
+	double norm = 0;
 
-	for(int i=0;       i<X.n+1;   i++ )   norm = norm + abs( real(X.y[i]) - real(Y.y[i]) ) / abs( real(X.y[i]) );
-    for(int i=3*X.n+4; i<4*X.n+4; i++ )   norm = norm + abs( real(X.y[i]) - real(Y.y[i]) ) / abs( real(X.y[i]) );
+	if(X.n != Y.n)            cout << "norm of X and Y: not matching size of the meshes!";
+	if(X.xMax != Y.xMax)      cout << "norm of X and Y: not matching maximal intervals!";
+
+	for(int i=0;       i<X.n+1;   i++ )
+	{
+        norm = norm + abs( real(X.y[i]) - real(Y.y[i]) ) / abs( real(Y.y[i]) );
+        if(abs( real(Y.y[i]) ) == 0)
+        {
+            //cout << "norm problem: "  << i << "  " << norm << "  " << real(Y.y[i]) << endl;
+        }
+    }
+    for(int i=3*X.n+4; i<4*X.n+4; i++ )
+    {
+
+        norm = norm + abs( real(X.y[i]) - real(Y.y[i]) ) / abs( real(Y.y[i]) );
+        if(abs( real(Y.y[i]) ) == 0)
+        {
+            //cout << "norm problem: "  << i << "  " << norm << "  " << real(Y.y[i]) << endl;
+        }
+    }
 
 	norm = norm /( 2*X.n + 1);
 
 	return norm;
 }
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void test_convolutions(int n, double xMax, double range, string export_mode)
+complex<double> shiftedG(int i, int j, AWT & G)
 {
-    cout << "Test of implementation of the convolution theorem in the program" << endl;
-    cout << endl;
-    cout << "Output is written as separate txt files in directory /Test" << endl;
+    int n;
+    int zero_condition = 0;
+    complex<double> value;
+    complex<double> unity(0,1);
 
-    string name;
-
-        // these four AWTs are used as help and storage place, are once allocated in the stack
-    AWT aux1;
-    aux1.initializeAWT(n, xMax, 0);
-    AWT aux2;
-    aux2.initializeAWT(n, xMax, 0);
-    AWT aux3;
-    aux3.initializeAWT(n, xMax, 0);
-    AWT aux4;
-    aux4.initializeAWT(n, xMax, 0);
-    AWT aux5;
-    aux5.initializeAWT(n, xMax, 0);
-    AWT aux6;
-    aux6.initializeAWT(n, xMax, 0);
-
-    AWT test;
-    test.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)     test.y[i] = ( (i*xMax/n)  )*exp( -1.0*(i*xMax/n)*(i*xMax/n) )  ;
-    for(int i=n+1;     i < 3*n + 4;  i++)     test.y[i] = 0;
-    for(int i=3*n+4;   i < 4*n + 4;  i++)     test.y[i] = ( -(xMax/n)*(4*n + 4 - i)  )*exp( -1.0*( (4*n + 4 - i)*xMax/n)*( (4*n + 4 -i)*xMax/n) )  ;
-
-    AWT test1;
-    test1.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)     test1.y[i] = ( (i*xMax/n) - 1.0 )*exp( -1.0*(i*xMax/n)*(i*xMax/n) )  ;
-    for(int i=n+1;     i < 3*n + 4;  i++)     test1.y[i] = 0;
-    for(int i=3*n+4;   i < 4*n + 4;  i++)     test1.y[i] = ( -(xMax/n)*(4*n + 4 - i) - 1.0 )*exp( -1.0*( (4*n + 4 - i)*xMax/n)*( (4*n + 4 -i)*xMax/n) )  ;
+    // in the case one needs to obtain values of Green functions outside AWTs range, we add tails
+    if( i > 0        &&  i < G.n+1     &&  j > 0 &&        j < G.n+1    )  n = i+j;
+    if( i > 0        &&  i < G.n+1     &&  j > 3*G.n+3 &&  j < 4*G.n+4  )  n = i+j -(4*G.n+4);
+    if( i > 3*G.n+3  &&  i < 4*G.n+4   &&  j > 0 &&        j < G.n+1    )  n = i+j -(4*G.n+4);
+    if( i > 3*G.n+3  &&  i < 4*G.n+4   &&  j > 3*G.n+3 &&  j < 4*G.n+4  )  n = i+j -(8*G.n+8);
 
 
-    name ="Test/testre";
-    test.exportAWTasFUN(name, 10, range, 1.0, export_mode);
+    if( i < 3*G.n+4  &&  i > G.n) zero_condition = 1;
+    if( j < 3*G.n+4  &&  j > G.n) zero_condition = 1;
 
-    name ="Test/testre1";
-    test1.exportAWTasFUN(name, 10, range, 1.0, export_mode);
+    double pomer =  ( n / G.n );
 
-    AWT real1;
-    real1.initializeAWT(n, xMax, 0);
-    real1.convolutionAWT(test, test1, 1, 1, aux1, aux2);
-    name ="Test/real1";
-    real1.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-
-    AWT real2;
-    real2.initializeAWT(n, xMax, 0);
-    real2.convolutionAWT(test, test1, 1, -1, aux1, aux2);
-    name ="Test/real2";
-    real2.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT real3;
-    real3.initializeAWT(n, xMax, 0);
-    real3.convolutionAWT(test, test1, -1, 1, aux1, aux2);
-    name ="Test/real3";
-    real3.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT real4;
-    real4.initializeAWT(n, xMax, 0);
-    real4.convolutionAWT(test, test1, -1, -1, aux1, aux2);
-    name ="Test/real4";
-    real4.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    cout << endl;
-    cout << "Purely real valued functions have been convolved" << endl;
-    cout << "Convolved functions are stored as testre and testre1" << endl;
-    cout << "Results according to the convolution theorem are stored in real[1-4]" << endl;
-    cout << "Results according to Newton integrals are stored in math_real[1-4]" << endl;
-    cout << endl;
-
-    AWT math_real1;
-    math_real1.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)
+    if(zero_condition == 0)
     {
-        double xx = (i*xMax/n);
-        math_real1.y[i] = 0.31332534*(-1.0 -2.0*xx +xx*xx )*exp(-0.5*xx*xx);
+        if(n > G.n+1                )    value = real(G.y[G.n]) / pomer / pomer + unity * imag(G.y[G.n]) / pomer ;
+        if(n >-1      && n < G.n+1  )    value = G.y[n];
+        if(n >-G.n-1  && n < 0      )    value = G.y[4*G.n+4-n];
+        if(              n < -2*G.n )    value = real(G.y[G.n]) / pomer / pomer + unity * imag(G.y[G.n]) / pomer ;
     }
-    for(int i=n+1;     i < 3*n + 4;  i++)
+    else
     {
-        math_real1.y[i] = 0;
-    }
-    for(int i=3*n+4;   i < 4*n + 4;  i++)
-    {
-        double xx =-(xMax/n)*(4*n + 4 - i);
-        math_real1.y[i] = 0.31332534*(-1.0 -2.0*xx +xx*xx )*exp(-0.5*xx*xx);
+        value = 0;
     }
 
-    name ="Test/math_real1";
-    math_real1.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT math_real2;
-	math_real2.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)
-    {
-        double xx = (i*xMax/n);
-        math_real2.y[i] = 0.31332534*(1.0 +2.0*xx -xx*xx )*exp(-0.5*xx*xx);
-    }
-    for(int i=n+1;     i < 3*n + 4;  i++)
-    {
-        math_real2.y[i] = 0;
-    }
-    for(int i=3*n+4;   i < 4*n + 4;  i++)
-    {
-        double xx =-(xMax/n)*(4*n + 4 - i);
-        math_real2.y[i] = 0.31332534*(1.0 +2.0*xx -xx*xx )*exp(-0.5*xx*xx);
-    }
-
-    name ="Test/math_real2";
-    math_real2.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT math_real3;
-    math_real3.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)
-    {
-        double xx = (i*xMax/n);
-        math_real3.y[i] = 0.31332534*(-1.0 +2.0*xx +xx*xx )*exp(-0.5*xx*xx);
-    }
-    for(int i=n+1;     i < 3*n + 4;  i++)
-    {
-        math_real3.y[i] = 0;
-    }
-    for(int i=3*n+4;   i < 4*n + 4;  i++)
-    {
-        double xx =-(xMax/n)*(4*n + 4 - i);
-        math_real3.y[i] = 0.31332534*(-1.0 +2.0*xx +xx*xx )*exp(-0.5*xx*xx);
-    }
-
-    name ="Test/math_real3";
-    math_real3.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT math_real4;
-    math_real4.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)
-    {
-        double xx = (i*xMax/n);
-        math_real4.y[i] = 0.31332534*(1.0 -2.0*xx -xx*xx )*exp(-0.5*xx*xx);
-    }
-    for(int i=n+1;     i < 3*n + 4;  i++)
-    {
-        math_real4.y[i] = 0;
-    }
-    for(int i=3*n+4;   i < 4*n + 4;  i++)
-    {
-        double xx =-(xMax/n)*(4*n + 4 - i);
-        math_real4.y[i] = 0.31332534*(1.0 -2.0*xx -xx*xx )*exp(-0.5*xx*xx);
-    }
-
-    name ="Test/math_real4";
-    math_real4.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT testim;
-    testim.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)
-    {
-        double a = ( (i*xMax/n)  )*exp( -1.0*(i*xMax/n)*(i*xMax/n) )  ;
-        complex<double> u(0,a);
-        testim.y[i] = u;
-    }
-    for(int i=n+1;     i < 3*n + 4;  i++)     testim.y[i] = 0;
-    for(int i=3*n+4;   i < 4*n + 4;  i++)
-    {
-        double a = ( -(xMax/n)*(4*n + 4 - i)  )*exp( -1.0*( (4*n + 4 - i)*xMax/n)*( (4*n + 4 -i)*xMax/n) )  ;
-        complex<double> u(0,a);
-        testim.y[i] = u;
-    }
-
-    AWT testim1;
-    testim1.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)
-    {
-        double a = ( (i*xMax/n) - 1.0 )*exp( -1.0*(i*xMax/n)*(i*xMax/n) )  ;
-        complex<double> u(0,a);
-        testim1.y[i] = u;
-    }
-    for(int i=n+1;     i < 3*n + 4;  i++)     testim1.y[i] = 0;
-    for(int i=3*n+4;   i < 4*n + 4;  i++)
-    {
-        double a = ( -(xMax/n)*(4*n + 4 - i) - 1.0 )*exp( -1.0*( (4*n + 4 - i)*xMax/n)*( (4*n + 4 -i)*xMax/n) )  ;
-        complex<double> u(0,a);
-        testim1.y[i] = u;
-    }
-
-
-    name ="Test/testim";
-    testim.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    name ="Test/testim1";
-    testim1.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT imag1;
-    imag1.initializeAWT(n, xMax, 0);
-    imag1.convolutionAWT(testim, testim1, 1, 1, aux1, aux2);
-    name ="Test/imag1";
-    imag1.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-
-    AWT imag2;
-    imag2.initializeAWT(n, xMax, 0);
-    imag2.convolutionAWT(testim, testim1, 1, -1, aux1, aux2);
-    name ="Test/imag2";
-    imag2.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT imag3;
-    imag3.initializeAWT(n, xMax, 0);
-    imag3.convolutionAWT(testim, testim1, -1, 1, aux1, aux2);
-    name ="Test/imag3";
-    imag3.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT imag4;
-    imag4.initializeAWT(n, xMax, 0);
-    imag4.convolutionAWT(testim, testim1, -1, -1, aux1, aux2);
-    name ="Test/imag4";
-    imag4.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    cout << endl;
-    cout << "Purely imaginary valued functions have been convolved" << endl;
-    cout << "Convolved functions are stored as testim and testim1" << endl;
-    cout << "Results according to the convolution theorem are stored in imag[1-4]" << endl;
-    cout << "Results according to Newton integrals are stored in math_imag[1-4]" << endl;
-    cout << endl;
-
-
-    AWT math_imag1;
-    math_imag1.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)
-    {
-        double xx = (i*xMax/n);
-        double a = -0.31332534*(-1.0 -2.0*xx +xx*xx )*exp(-0.5*xx*xx);
-        complex<double> u(a,0);
-        math_imag1.y[i] = u;
-    }
-    for(int i=n+1;     i < 3*n + 4;  i++)
-    {
-        math_imag1.y[i] = 0;
-    }
-    for(int i=3*n+4;   i < 4*n + 4;  i++)
-    {
-        double xx =-(xMax/n)*(4*n + 4 - i);
-        double a = -0.31332534*(-1.0 -2.0*xx +xx*xx )*exp(-0.5*xx*xx);
-        complex<double> u(a,0);
-        math_imag1.y[i] = u;
-    }
-
-    name ="Test/math_imag1";
-    math_imag1.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT math_imag2;
-	math_imag2.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)
-    {
-        double xx = (i*xMax/n);
-        double a = -0.31332534*(1.0 +2.0*xx -xx*xx )*exp(-0.5*xx*xx);
-        complex<double> u(a,0);
-        math_imag2.y[i] = u;
-    }
-    for(int i=n+1;     i < 3*n + 4;  i++)
-    {
-        math_imag2.y[i] = 0;
-    }
-    for(int i=3*n+4;   i < 4*n + 4;  i++)
-    {
-        double xx =-(xMax/n)*(4*n + 4 - i);
-        double a = -0.31332534*(1.0 +2.0*xx -xx*xx )*exp(-0.5*xx*xx);
-        complex<double> u(a,0);
-        math_imag2.y[i] = u;
-    }
-
-    name ="Test/math_imag2";
-    math_imag2.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT math_imag3;
-    math_imag3.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)
-    {
-        double xx = (i*xMax/n);
-        double a = -0.31332534*(-1.0 +2.0*xx +xx*xx )*exp(-0.5*xx*xx);
-        complex<double> u(a,0);
-        math_imag3.y[i] = u;
-    }
-    for(int i=n+1;     i < 3*n + 4;  i++)
-    {
-        math_imag3.y[i] = 0;
-    }
-    for(int i=3*n+4;   i < 4*n + 4;  i++)
-    {
-        double xx =-(xMax/n)*(4*n + 4 - i);
-        double a = -0.31332534*(-1.0 +2.0*xx +xx*xx )*exp(-0.5*xx*xx);
-        complex<double> u(a,0);
-        math_imag3.y[i] = u;
-    }
-
-    name ="Test/math_imag3";
-    math_imag3.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT math_imag4;
-    math_imag4.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)
-    {
-        double xx = (i*xMax/n);
-        double a = -0.31332534*(1.0 -2.0*xx -xx*xx )*exp(-0.5*xx*xx);
-        complex<double> u(a,0);
-        math_imag4.y[i] = u;
-    }
-    for(int i=n+1;     i < 3*n + 4;  i++)
-    {
-        math_imag4.y[i] = 0;
-    }
-    for(int i=3*n+4;   i < 4*n + 4;  i++)
-    {
-        double xx =-(xMax/n)*(4*n + 4 - i);
-        double a = -0.31332534*(1.0 -2.0*xx -xx*xx )*exp(-0.5*xx*xx);
-        complex<double> u(a,0);
-        math_imag4.y[i] = u;
-    }
-
-    name ="Test/math_imag4";
-    math_imag4.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT testco;
-    testco.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)
-    {
-        double xx = (i*xMax/n);
-        double a = xx*exp(-xx*xx);
-        double b = (xx+1.0)*exp(-xx*xx);
-        complex<double> u(a,b);
-        testco.y[i] = u;
-    }
-    for(int i=n+1;     i < 3*n + 4;  i++)     testco.y[i] = 0;
-    for(int i=3*n+4;   i < 4*n + 4;  i++)
-    {
-        double xx = -(xMax/n)*(4*n + 4 - i);
-        double a = xx*exp(-xx*xx);
-        double b = (xx+1.0)*exp(-xx*xx);
-        complex<double> u(a,b);
-        testco.y[i] = u;
-    }
-
-    AWT testco1;
-    testco1.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)
-    {
-        double xx = (i*xMax/n);
-        double a = (xx-1.0)*exp(-xx*xx);
-        double b = (xx-2.0)*exp(-xx*xx);
-        complex<double> u(a,b);
-        testco1.y[i] = u;
-    }
-    for(int i=n+1;     i < 3*n + 4;  i++)     testco1.y[i] = 0;
-    for(int i=3*n+4;   i < 4*n + 4;  i++)
-    {
-        double xx = -(xMax/n)*(4*n + 4 - i);
-        double a = (xx-1.0)*exp(-xx*xx);
-        double b = (xx-2.0)*exp(-xx*xx);
-        complex<double> u(a,b);
-        testco1.y[i] = u;
-    }
-
-
-    name ="Test/testco";
-    testco.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    name ="Test/testco1";
-    testco1.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT comp1;
-    comp1.initializeAWT(n, xMax, 0);
-    comp1.convolutionAWT(testco, testco1, 1, 1, aux1, aux2);
-    name ="Test/comp1";
-    comp1.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-
-    AWT comp2;
-    comp2.initializeAWT(n, xMax, 0);
-    comp2.convolutionAWT(testco, testco1, 1, -1, aux1, aux2);
-    name ="Test/comp2";
-    comp2.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT comp3;
-    comp3.initializeAWT(n, xMax, 0);
-    comp3.convolutionAWT(testco, testco1, -1, 1, aux1, aux2);
-    name ="Test/comp3";
-    comp3.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT comp4;
-    comp4.initializeAWT(n, xMax, 0);
-    comp4.convolutionAWT(testco, testco1, -1, -1, aux1, aux2);
-    name ="Test/comp4";
-    comp4.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    cout << endl;
-    cout << "Complex valued functions have been convolved" << endl;
-    cout << "Convolved functions are stored as testco and testco1" << endl;
-    cout << "Results according to the convolution theorem are stored in comp[1-4]" << endl;
-    cout << "Results according to Newton integrals are stored in math_comp[1-4]" << endl;
-    cout << endl;
-
-
-
-    AWT math_comp1;
-    math_comp1.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)
-    {
-        double xx = (i*xMax/n);
-        double a = 1.253314137*(2.0 )*exp(-0.5*xx*xx);
-        double b = 1.253314137*(-1.5 -xx +0.5*xx*xx )*exp(-0.5*xx*xx);
-        complex<double> u(a,b);
-        math_comp1.y[i] = u;
-    }
-    for(int i=n+1;     i < 3*n + 4;  i++)
-    {
-        math_comp1.y[i] = 0;
-    }
-    for(int i=3*n+4;   i < 4*n + 4;  i++)
-    {
-        double xx =-(xMax/n)*(4*n + 4 - i);
-        double a = 1.253314137*(2.0 )*exp(-0.5*xx*xx);
-        double b = 1.253314137*(-1.5 -xx +0.5*xx*xx )*exp(-0.5*xx*xx);
-        complex<double> u(a,b);
-        math_comp1.y[i] = u;
-    }
-
-    name ="Test/math_comp1";
-    math_comp1.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT math_comp2;
-	math_comp2.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)
-    {
-        double xx = (i*xMax/n);
-        double a = 1.253314137*(2.0 -xx )*exp(-0.5*xx*xx);
-        double b = 1.253314137*(-0.5 + 2.0*xx -0.5*xx*xx )*exp(-0.5*xx*xx);
-        complex<double> u(a,b);
-        math_comp2.y[i] = u;
-    }
-    for(int i=n+1;     i < 3*n + 4;  i++)
-    {
-        math_comp2.y[i] = 0;
-    }
-    for(int i=3*n+4;   i < 4*n + 4;  i++)
-    {
-        double xx =-(xMax/n)*(4*n + 4 - i);
-        double a = 1.253314137*(2.0 -xx )*exp(-0.5*xx*xx);
-        double b = 1.253314137*(-0.5 + 2.0*xx -0.5*xx*xx )*exp(-0.5*xx*xx);
-        complex<double> u(a,b);
-        math_comp2.y[i] = u;
-    }
-
-    name ="Test/math_comp2";
-    math_comp2.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT math_comp3;
-    math_comp3.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)
-    {
-        double xx = (i*xMax/n);
-        double a = 1.253314137*(2.0 )*exp(-0.5*xx*xx);
-        double b = 1.253314137*(-1.5 + 1.0*xx +0.5*xx*xx )*exp(-0.5*xx*xx);
-        complex<double> u(a,b);
-        math_comp3.y[i] = u;
-    }
-    for(int i=n+1;     i < 3*n + 4;  i++)
-    {
-        math_comp3.y[i] = 0;
-    }
-    for(int i=3*n+4;   i < 4*n + 4;  i++)
-    {
-        double xx =-(xMax/n)*(4*n + 4 - i);
-        double a = 1.253314137*(2.0 )*exp(-0.5*xx*xx);
-        double b = 1.253314137*(-1.5 + 1.0*xx +0.5*xx*xx )*exp(-0.5*xx*xx);
-        complex<double> u(a,b);
-        math_comp3.y[i] = u;
-    }
-
-    name ="Test/math_comp3";
-    math_comp3.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-    AWT math_comp4;
-    math_comp4.initializeAWT(n, xMax, 0);
-
-    for(int i=0;       i < n + 1;    i++)
-    {
-        double xx = (i*xMax/n);
-        double a = 1.253314137*(2.0 +xx)*exp(-0.5*xx*xx);
-        double b = 1.253314137*(-0.5 - 2.0*xx -0.5*xx*xx )*exp(-0.5*xx*xx);
-        complex<double> u(a,b);
-        math_comp4.y[i] = u;
-    }
-    for(int i=n+1;     i < 3*n + 4;  i++)
-    {
-        math_comp4.y[i] = 0;
-    }
-    for(int i=3*n+4;   i < 4*n + 4;  i++)
-    {
-        double xx =-(xMax/n)*(4*n + 4 - i);
-        double a = 1.253314137*(2.0 +xx)*exp(-0.5*xx*xx);
-        double b = 1.253314137*(-0.5 - 2.0*xx -0.5*xx*xx )*exp(-0.5*xx*xx);
-        complex<double> u(a,b);
-        math_comp4.y[i] = u;
-    }
-
-    name ="Test/math_comp4";
-    math_comp4.exportAWTasFUN(name, 10, range, 1.0, export_mode);
-
-	cout << "convolution test finished" << endl;
+    return value;
 }

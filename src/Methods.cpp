@@ -1,7 +1,6 @@
 #include "Methods.h"
 #include "physics.h"
-
-#include "Constants.h"
+#include "convert.h"
 
 //#include "ArrayWithTails.h"
 
@@ -34,6 +33,8 @@ struct lambda_implicit_non_zero_T
 
     double operator()(double lambda)
     {
+        double Pi=3.14159265359;
+
         AWT Integrand;
         Integrand.initializeAWT(GT.n, GT.xMax, GT.kT);
 
@@ -47,7 +48,7 @@ struct lambda_implicit_non_zero_T
         Integrand.y[i] = FD.y[i] * real( PHIshift.y[4*GT.n + 4 - i] / (1.0 + lambda * PHIshift.y[4*GT.n + 4 - i] ) ) * imag( GT.y[i] * conj( GT.y[4*GT.n + 4 - i] ) );
 
         // first part is stored into Psi
-        double Psi = (lambda*lambda/Pi)*integrateReP(Integrand);
+        double Psi = (lambda*lambda/Pi)*Trapezoid_Re(Integrand);
 
         // second integral of Eq. 19 is performed
         Integrand.y[0] = BE.y[0] * imag( conj(PHI.y[0]) / (1.0 + lambda * conj(PHI.y[0]) ) ) * real( conj(GTshift.y[0]) * GTshift.y[0]  );
@@ -59,7 +60,7 @@ struct lambda_implicit_non_zero_T
         Integrand.y[i] = BE.y[i] * imag( conj(PHI.y[4*GT.n + 4 - i]) / (1.0 + lambda * conj(PHI.y[4*GT.n + 4 - i]) ) ) * real( GTshift.y[i] * conj( GTshift.y[4*GT.n + 4 - i] ) );
 
         // Psi is calculated from Eq. 19
-        Psi = Psi - (lambda*lambda/Pi)*integrateReP(Integrand);
+        Psi = Psi - (lambda*lambda/Pi)*Trapezoid_Re(Integrand);
 
         return  abs( lambda - U / ( 1.0 + Psi ) );
     }
@@ -82,6 +83,8 @@ struct lambda_implicit_non_zero_T_simple
 
     double operator()(double lambda)
     {
+        double Pi=3.14159265359;
+
         AWT Integrand;
         Integrand.initializeAWT(GT.n, GT.xMax, GT.kT);
 
@@ -95,7 +98,7 @@ struct lambda_implicit_non_zero_T_simple
         Integrand.y[i] = FD.y[i] * real( PHI.y[4*GT.n + 4 - i] / (1.0 + lambda * PHI.y[4*GT.n + 4 - i] ) ) * imag( GT.y[i] * conj( GT.y[4*GT.n + 4 - i] ) );
 
         // first part is stored into Psi
-        double Psi = (lambda*lambda/Pi)*integrateReP(Integrand);
+        double Psi = (lambda*lambda/Pi)*Trapezoid_Re(Integrand);
 
         // second integral of Eq. 19 is performed
         Integrand.y[0] = BE.y[0] * imag( conj(PHI.y[0]) / (1.0 + lambda * conj(PHI.y[0]) ) ) * real( GT.y[0] * conj(GT.y[0])   );
@@ -107,7 +110,7 @@ struct lambda_implicit_non_zero_T_simple
         Integrand.y[i] = BE.y[i] * imag( conj(PHI.y[4*GT.n + 4 - i]) / (1.0 + lambda * conj(PHI.y[4*GT.n + 4 - i]) ) ) * real( GT.y[i] * conj( GT.y[4*GT.n + 4 - i] ) );
 
         // Psi is calculated from Eq. 19
-        Psi = Psi - (lambda*lambda/Pi)*integrateReP(Integrand);
+        Psi = Psi - (lambda*lambda/Pi)*Trapezoid_Re(Integrand);
 
         return  abs( lambda - U / ( 1.0 + Psi ) );
     }
@@ -125,6 +128,8 @@ void Lambda_nonZeroT(double U, double Lmin, string physics,
                      double & Lambda, double & Psi,
                      AWT & f_FD, AWT & f_BE, AWT & K3)
 {
+    double Pi = 3.14159265359;
+
     // the minimal value of Lambda is passed in, the maximal value Lmax is determined from PHI
     //double Lmax = -1/real( PHI.y[0]) - 1e-10;;
     //cout << "making Lmax:    " << Lmax << endl;
@@ -153,7 +158,7 @@ void Lambda_nonZeroT(double U, double Lmin, string physics,
         Integrand.y[i] = f_FD.y[i] * real( PHIshift.y[4*GT.n + 4 - i] / (1.0 + Lambda * PHIshift.y[4*GT.n + 4 - i] ) ) * imag( GT.y[i] * conj( GT.y[4*GT.n + 4 - i] ) );
 
         // first part is stored into Psi
-        Psi = (Lambda*Lambda/Pi)*integrateReP(Integrand);
+        Psi = (Lambda*Lambda/Pi)*Trapezoid_Re(Integrand);
 
         // second integral of Eq. 19 is performed
         Integrand.y[0] = f_BE.y[0] * imag( conj(PHI.y[0]) / (1.0 + Lambda * conj(PHI.y[0]) ) ) * real( conj(GTshift.y[0]) * GTshift.y[0]  );
@@ -180,7 +185,7 @@ void Lambda_nonZeroT(double U, double Lmin, string physics,
         Integrand.y[i] = f_FD.y[i] * real( PHI.y[4*GT.n + 4 - i] / (1.0 + Lambda * PHI.y[4*GT.n + 4 - i] ) ) * imag( GT.y[i] * conj( GT.y[4*GT.n + 4 - i] ) );
 
         // first part is stored into Psi
-        Psi = (Lambda*Lambda/Pi)*integrateReP(Integrand);
+        Psi = (Lambda*Lambda/Pi)*Trapezoid_Re(Integrand);
 
         // second integral of Eq. 19 is performed
         Integrand.y[0] = f_BE.y[0] * imag( conj(PHI.y[0]) / (1.0 + Lambda * conj(PHI.y[0]) ) ) * real( conj(GT.y[0]) * GT.y[0]  );
@@ -194,7 +199,7 @@ void Lambda_nonZeroT(double U, double Lmin, string physics,
     }
 
     // Psi is calculated from Eq. 19
-    Psi = Psi - (Lambda*Lambda/Pi)*integrateReP(Integrand);
+    Psi = Psi - (Lambda*Lambda/Pi)*Trapezoid_Re(Integrand);
 }
 
 
@@ -205,6 +210,8 @@ struct nT_implicit_non_zero_T
 
     double operator()(double nT)
     {
+        double Pi=3.14159265359;
+
         // first DOS is loaded with thermal propagator
         AWT DOS;
         DOS.initializeAWT(f_FD.n, f_FD.xMax, f_FD.kT);
@@ -217,7 +224,7 @@ struct nT_implicit_non_zero_T
         for(int i = 3*f_FD.n+4; i < 4*f_FD.n + 4;  i++ )
         DOS.y[i] = f_FD.y[i] * imag(DOS.y[i]);
 
-        return  abs( - nT - 2.0 * integrateReP(DOS) / Pi - 2.0 * DOS.y[3*f_FD.n+4] / ( DOS.xMax * Pi ) );
+        return  abs( - nT - 2.0 * Trapezoid_Re(DOS) / Pi - 2.0 * DOS.y[3*f_FD.n+4] / ( DOS.xMax * Pi ) );
     }
 
     double delta;
@@ -246,6 +253,7 @@ struct nS_implicit_non_zero_T
 
     double operator()(double nS)
     {
+        double Pi=3.14159265359;
         // the static bubble psi
 
         // first DOS is loaded with spectral propagator
@@ -260,7 +268,7 @@ struct nS_implicit_non_zero_T
         for(int i = 3*f_FD.n+4; i < 4*f_FD.n + 4;  i++ )
         DOS.y[i] = f_FD.y[i] * imag(DOS.y[i]);
 
-        return  abs( - nS - 2.0 *  integrateReP(DOS) / Pi - 2.0 *  DOS.y[3*f_FD.n+4]/ ( DOS.xMax * Pi ) );
+        return  abs( - nS - 2.0 *  Trapezoid_Re(DOS) / Pi - 2.0 *  DOS.y[3*f_FD.n+4]/ ( DOS.xMax * Pi ) );
     }
 
     double delta;
@@ -294,6 +302,8 @@ pair<double, double> Brent_nS_nonZeroT(double delta, double x, double U, AWT & S
 
 void Effective_nonZeroT(string input)
 {
+    double Pi = 3.14159265359;
+
     // intialization of variables which are then imputed by a txt file
     double delta, mu;
     string model;
@@ -348,11 +358,11 @@ void Effective_nonZeroT(string input)
     BE_0.initializeAWT(n, xMax, 0);
     G0.initializeAWT(n, xMax, 0);
 
-    FD_0.set_FD();
+    FD_0.setFD(n, xMax, 0);
     string filename = "Txt/Hartree/FD_0";
     FD_0.exportAWTasFUN(filename, display, range, 1, export_mode);
 
-    BE_0.set_BE();
+    BE_0.setBE(n, xMax, 0);
     filename = "Txt/Hartree/BE_0";
     BE_0.exportAWTasFUN(filename, display, range, 1, export_mode);
 
@@ -421,9 +431,9 @@ void Effective_nonZeroT(string input)
         FD.initializeAWT(n, xMax, kT);
         BE.initializeAWT(n, xMax, kT);
 
-        K3.set_K3();
-        FD.set_FD();
-        BE.set_BE();
+        K3.Kernel3();
+        FD.setFD(n, xMax, kT);
+        BE.setBE(n, xMax, kT);
 
         if(print_mode == 1)
         {
@@ -442,8 +452,8 @@ void Effective_nonZeroT(string input)
         SigmaTherm.initializeAWT(n, xMax, kT);
         SigmaSpec.initializeAWT(n, xMax, kT);
 
-        SigmaTherm.set_zero();
-        SigmaSpec.set_zero();
+        SigmaTherm.setZero();
+        SigmaSpec.setZero();
 
         //
         AWT GT, GTshift, GS, PHI,PHIshift;
@@ -454,11 +464,11 @@ void Effective_nonZeroT(string input)
         PHI.initializeAWT(n, xMax, kT);
         PHIshift.initializeAWT(n, xMax, kT);
 
-        GT.set_zero();
-        GTshift.set_zero();
-        GS.set_zero();
-        PHI.set_zero();
-        PHIshift.set_zero();
+        GT.setZero();
+        GTshift.setZero();
+        GS.setZero();
+        PHI.setZero();
+        PHIshift.setZero();
 
 
 
@@ -555,6 +565,10 @@ void Effective_nonZeroT(string input)
                             }
 
                             // Lambda and Psi are calculated and stored in the variables
+                            // EFF  is a theory proposed in xxx : GT and PHI shifted,     spec sigma with FD   and BE,   corelation energy with FD
+                            // EFF1 is a theory proposed in xxx : GT and PHI shifted,     spec sigma with FD_0 and BE_0, corelation energy with FD
+                            // EFF2 is a theory proposed in xxx : GT and PHI shifted,     spec sigma with FD_0 and BE_0, corelation energy with FD_0
+                            // EFF3 is a theory proposed in xxx : GT and PHI not shifted, spec sigma with FD_0 and BE_0, corelation energy with FD
                             if(physics == "EFF")         Lambda_nonZeroT(U, Lmin, physics, GT, GTshift, PHI, PHIshift, Lambda, Psi, FD, BE, K3);
                             if(physics == "EFF1")        Lambda_nonZeroT(U, Lmin, physics, GT, GTshift, PHI, PHIshift, Lambda, Psi, FD_0, BE_0, K3);
                             if(physics == "EFF2")        Lambda_nonZeroT(U, Lmin, physics, GT, GTshift, PHI, PHIshift, Lambda, Psi, FD_0, BE_0, K3);
@@ -602,7 +616,7 @@ void Effective_nonZeroT(string input)
 
                 // spectral self-energy is calculated and stored
                 if(physics == "RPA" )    spectral_sigma_RPA(U, PHI, GT, FD, BE, K3, SigmaSpec, Int, aux1, aux2, aux3, aux4, aux5, aux6);
-                if(physics == "EFF" )    spectral_sigma_EFF(U, Lambda, PHI, GT, FD, BE, K3, SigmaSpec, Int, aux1, aux2, aux3, aux4, aux5, aux6);
+                if(physics == "EFF" )    spectral_sigma_EFF(U, Lambda, PHI, GT, FD,   BE,   K3, SigmaSpec, Int, aux1, aux2, aux3, aux4, aux5, aux6);
                 if(physics == "EFF1")    spectral_sigma_EFF(U, Lambda, PHI, GT, FD_0, BE_0, K3, SigmaSpec, Int, aux1, aux2, aux3, aux4, aux5, aux6);
                 if(physics == "EFF2")    spectral_sigma_EFF(U, Lambda, PHI, GT, FD_0, BE_0, K3, SigmaSpec, Int, aux1, aux2, aux3, aux4, aux5, aux6);
                 if(physics == "EFF3")    spectral_sigma_EFF(U, Lambda, PHI, GT, FD_0, BE_0, K3, SigmaSpec, Int, aux1, aux2, aux3, aux4, aux5, aux6);
@@ -665,7 +679,7 @@ void Effective_nonZeroT(string input)
                 for(int ii=0;  ii<4*Int.n + 4;  ii++)     Int.y[ii] =  FD.y[ii]*imag(GS.y[ii] * GS.y[ii] * ( 1.0 - U*X.y[ii]/ ( 1.0 + Lambda*real(PHI.y[0])  ) ) );
 
 
-                chi = (2.0/Pi)* integrateReP(Int)   ;
+                chi = (2.0/Pi)* Trapezoid_Re(Int)   ;
 
                 for(int ii=0;  ii<4*Int.n + 4;  ii++)     Int.y[ii] = FD.y[ii]*imag(GT.y[ii] * GT.y[ii]);
 

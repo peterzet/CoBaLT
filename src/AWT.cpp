@@ -1,6 +1,4 @@
-#include "awt.h"
-
-#include "Constants.h"
+#include "AWT.h"
 
 #include <vector>
 #include <iostream>         // standard library for reading inputs
@@ -38,12 +36,13 @@ void AWT::initializeAWT(int _n, double _x, double _kT)
 {
     n    = _n;              // 2_n + 1 is the number of the mesh points
     xMax = _x;              // <-xMax, xMax> is the interval on which the function is defined
-    nn   = 4 * n  + 4;      // nn is the size of the complete AWT array
-    kT = _kT;               // kT is the temperature associated with the AWT
+    nn   = 4 * n  + 4;      // nnHelp is the size of the array to store the function
+    kT = _kT;
 
-    // data is allocated for y in the heap, the argument of fftw_malloc defines the size of the input array as nn = 4*n +4
+    // data is allocated for y in the heap, the argument of fftw_malloc defines the size of the input array as nnHelp = 4*n +4
     y = (complex<double> *) fftw_malloc(nn * sizeof(complex<double>));
 
+    //cout << "taking space " << nn * sizeof(complex<double>) << endl;
     // this informs you whenever there is no space to store y
     if(y == NULL)
     {
@@ -65,7 +64,6 @@ void AWT::initializeAWT(int _n, double _x, double _kT)
     // A plan fbackwardFFT is created forbackward fast Fourier transform
     backwardFFT = fftw_plan_dft_1d(nn, (fftw_complex *) yDFT, (fftw_complex *) y, FFTW_BACKWARD, FFTW_METHOD | FFTW_PRESERVE_INPUT);
 
-    dftKnown = false;
 }
 
 
@@ -85,15 +83,11 @@ AWT::~AWT()
 // Forward and Backward discrete Fourier transform
 void AWT::forwardDFT()
 {
-    if(dftKnown)
-    return;
     fftw_execute(forwardFFT);
-    dftKnown = true;
 }
 
 void AWT::backwardDFT()
 {
-    assert(dftKnown);
     fftw_execute(backwardFFT);
 
     // normalize with the size of the transformed array and erase garbage at the place of the zero padding
@@ -107,89 +101,79 @@ void AWT::backwardDFT()
 ////////////////////////////////////////////////////////////////////
 
 // the array is filled with complex zero
-void AWT::set_zero()
+void AWT::setZero()
 {
-    complex<double> u(0,0);
-    for(int i=0; i<nn; i++)         y[i] = u;
+    for(int i=0; i<nn; i++)
+    {
+        complex<double> u(0,0);
+        y[i] = u;
+    }
 }
 
 void AWT::set_real(double numb)
 {
-    complex<double> u(numb,0);
-    for(int i=0;     i<=n; i++)      y[i] = u;
-    for(int i=n+1; i<nn-n; i++)      y[i] = 0;
-    for(int i=nn-n;  i<nn; i++)      y[i] = u;
-
-}
-
-void AWT::set_imag(double numb)
-{
-    complex<double> u(0,numb);
-    for(int i=0;     i<=n; i++)      y[i] = u;
-    for(int i=n+1; i<nn-n; i++)      y[i] = 0;
-    for(int i=nn-n;  i<nn; i++)      y[i] = u;
+    for(int i=0; i<nn; i++)
+    {
+        complex<double> u(numb,0);
+        y[i] = u;
+    }
 }
 
 // The initializer of FERMI-DIRAC and BOSE-EINSTEIN distribution
-void AWT::set_FD()
+void AWT::setFD(int _n, double _x, double _kT)
 {
-    if( kT == 0 )
+    if( _kT == 0 )
     {
-                                           y[0] = 0.5;
-        for(int i=1;     i<nn-n;  i++)     y[i] = 0;
-        for(int i=nn-n;  i<nn;    i++)     y[i] = 1.0;
+                                                 y[0] = 0.5;
+        for(int i=1;      i < 3*_n + 4; i++)     y[i] = 0;
+        for(int i=3*_n+4; i < 4*_n + 4; i++)     y[i] = 1.0;
     }
     else
     {
-                                            y[0] = 1.0/( exp( +1e-12) + 1 );
-        for(int i=0;     i<=n;    i++)      y[i] = 1.0/( exp(i*xMax/ (n * kT)  ) + 1 );
-        for(int i=n+1; i<nn-n;    i++)      y[i] = 0;
-        for(int i=nn-n;  i<nn;    i++)      y[i] = 1.0/( exp(  (i - 4*n -4)*xMax / (n *kT)  ) + 1 );
+                                                 y[0] = 1.0/( exp( +1e-12) + 1 );
+        for(int i=1;      i < _n + 1; i++)       y[i] = 1.0/( exp(i*_x/ (_n * _kT)  ) + 1 );
+        for(int i=_n + 1; i < 3*_n + 4; i++)     y[i] = 0;
+        for(int i=3*_n+4; i < 4*_n + 4; i++)     y[i] = 1.0/( exp(  (i - 4*_n -4)*_x / (_n *_kT)  ) + 1 );
     }
 }
 
-void AWT::set_BE()
+// The initializer of THE FIRST DERIVATIVE OF FERMI-DIRAC function
+void AWT::setFDder(int _n, double _x, double _kT)
 {
-    if( kT == 0 )
+    // dirac delta function
+    if( _kT == 0 )
     {
-                                            y[0] = 0.5;
-        for(int i=1;     i<nn-n;  i++)      y[i] = 0;
-        for(int i=nn-n;  i<nn;    i++)      y[i] = -1.0;
+                                                 y[0] = 1;
+        for(int i=1;      i < 3*_n + 4; i++)     y[i] = 0;
+        for(int i=3*_n+4; i < 4*_n + 4; i++)     y[i] = 0;
     }
     else
     {
-                                            y[0] = 1.0/( exp( +1e-12/kT ) - 1 );
-        for(int i=0;     i<=n;    i++)      y[i] = 1.0/( exp(i*xMax/ (n * kT)  ) - 1 );
-        for(int i=n+1; i<nn-n;    i++)      y[i] = 0;
-        for(int i=nn-n;  i<nn;    i++)      y[i] = 1.0/( exp( (i - 4*n -4)* xMax / (n*kT) ) - 1 );
+                                                 y[0] = -1.0*exp( +1e-12)/( exp( +1e-12) + 1 );
+        for(int i=1;      i < _n + 1; i++)       y[i] = -1.0*exp(i*_x/ (_n * _kT) )/( exp(i*_x/ (_n * _kT)  ) + 1 )/( exp(i*_x/ (_n * _kT)  ) + 1 )/_kT;
+        for(int i=_n + 1; i < 3*_n + 4; i++)     y[i] = 0;
+        for(int i=3*_n+4; i < 4*_n + 4; i++)     y[i] = -1.0*exp(  (i - 4*_n -4)*_x / (_n *_kT)  ) /( exp(  (i - 4*_n -4)*_x / (_n *_kT)  ) + 1 )/( exp(  (i - 4*_n -4)*_x / (_n *_kT)  ) + 1 )/_kT;
     }
 }
 
-// Kernel3 for KRAMMERS KRONIG
-void AWT::set_K3()
+void AWT::setBE(int _n, double _x, double _kT)
 {
-    y[1] =  0;
-    y[1] =  4*log(3.0/2.0);
-    y[2] = 10*log(4.0/3.0) -6*log(3.0/2.0);
-
-    int i;
-    for(i=3; i<=n; i++)
+    if( _kT == 0 )
     {
-        if(i<1000)
-        {
-            y[i] =     (1-i*i)*(i-2)         *atanh(1.0/(1 - 2*i))
-                   +   (1-i*i)*(i+2)         *atanh(1.0/(1 + 2*i))
-                   +   (i*i*i-6*i*i+11*i-6)  *atanh(1.0/(3 - 2*i))/3.0
-                   +   (i+3)*(i*i+3*i+2)     *atanh(1.0/(3 + 2*i))/3.0;
-        }
-        else    y[i] = 1.0/i;
-
+                                                 y[0] = -0.5;
+        for(int i=1;      i < 3*_n + 4; i++)     y[i] = 0;
+        for(int i=3*_n+4; i < 4*_n + 4; i++)     y[i] = -1.0;
     }
-    for(int i=n+1;   i<nn-n;   i++)         y[i] =  0;
-    for(int i=nn-n;  i<nn;     i++)         y[i] =  -y[nn-i];
-    for(int i=0;     i<nn;     i++)      yDFT[i] =  0;
-
+    else
+    {
+                                                 y[0] = -0.5; // 1.0/( exp( +1e-12/kT ) - 1 );
+        for(int i=1;      i <   _n + 1; i++)     y[i] = 1.0/( exp(i*_x/ (_n * kT)  ) - 1 );
+        for(int i=_n + 1; i < 3*_n + 4; i++)     y[i] = 0;
+        for(int i=3*_n+4; i < 4*_n + 4; i++)     y[i] = 1.0/( exp( (i - 4*_n -4)*_x / (_n *_kT) ) - 1 );
+    }
 }
+
+
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -326,7 +310,7 @@ void AWT::importFUNasAWT(string & name, double x, double kT)
         ListFile >> item;
         counter = counter+1;
     }
-    int n = (counter-4)/6;
+    int n = (counter-4)/6+1;
     ListFile.close();
 
     // 2. AWT with the right size is initialized
@@ -337,7 +321,7 @@ void AWT::importFUNasAWT(string & name, double x, double kT)
     ListFile.open (name.c_str());
     if (ListFile.fail()) {cerr<< "Error opening the file" << endl; exit(1);}
 
-    while (!ListFile.eof())  // while not end of file
+    while (counter < 6*n+3 )  // while not end of file
     {
         ListFile >> item;
         if(counter % 3 == 1)    re = atof(item.c_str());       // scans for entries in the second column in the file
@@ -381,17 +365,25 @@ void AWT::loadAWTtoAWT(AWT & in)
 {
     if(n != in.n)
     {
-        cerr<< "Error: AWTs are not compatible" << endl; exit(1);
+        cerr<< "Error: AWT and AWT are not compatible" << endl; exit(1);
     }
     int i;
     for(i=0; i < 4*n+4; i++)
     {
         y[i] = in.y[i];
         yDFT[i] = in.yDFT[i];
-        dftKnown = false;
     }
 }
 
+// load just the DFT part
+void AWT::loadDFTtoAWT(AWT & in)
+{
+    if(n != in.n)   cerr<< "Error: DFT and AWT are not compatible" << endl; exit(1);
+    for(int i=0; i < 4*n+4; i++)
+    {
+        yDFT[i] = in.yDFT[i];
+    }
+}
 
 void AWT::loadFUNtoAWT(rawF & in)
 {
@@ -407,26 +399,18 @@ void AWT::loadFUNtoAWT(rawF & in)
 /////////////////////////////////////////////////////////////////////////
 void AWT::exportAWTasAWT(string & name, int div, string & output_mode)
 {
-    // parameter that watches if writting has been successfull
-    int control = 0;
-
     if(output_mode == "old")
     {
         ofstream output(name.c_str());
-        for(  int i=0;   i < nn;  i=i+div)   output << i << "  " << real(y[i]) << "  " << imag(y[i]) << "  " << real(yDFT[i]) << "  " << imag(yDFT[i]) << "" << endl;
-        control++;
+        for(  int i=0;   i < 4*n+4;  i=i+div)   output << i << "  " << real(y[i]) << "  " << imag(y[i]) << "  " << real(yDFT[i]) << "  " << imag(yDFT[i]) << "" << endl;
     }
-    if(output_mode == "cx11")
+    if(output_mode == "c11")
     {
         ofstream output;
         output.open(name);
-        for(  int i=0;   i < nn;  i=i+div)   output << i << "  " << real(y[i]) << "  " << imag(y[i]) << "  " << real(yDFT[i]) << "  " << imag(yDFT[i]) << "" << endl;
-        control++;
+        for(  int i=0;   i < 4*n+4;  i=i+div)   output << i << "  " << real(y[i]) << "  " << imag(y[i]) << "  " << real(yDFT[i]) << "  " << imag(yDFT[i]) << "" << endl;
     }
-    if( control != 1)
-    {
-        cerr<< "Error writing the AWT" << endl; exit(1);
-    }
+
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -455,7 +439,28 @@ void AWT::exportAWTasFUN(string & name, int div, double range, double mult, stri
     #endif // CX11
 }
 
+void AWT::exportDFTasFUN(string & name, int div, double range, string & output_mode)
+{
+    int limit=n*range/xMax;
 
+    #ifdef OLD
+
+        ofstream output(name.c_str());
+        // first the negative values are printed, then, the positive values are printed
+        for(int i=4*n+4-limit; i<4*n+4; i=i+div)    output << (i-4*n -4)*xMax/n << "  " << real(yDFT[i]) << "  " << imag(yDFT[i]) << "  " << endl;
+        for(int i=0;           i<limit; i=i+div)    output << i*xMax/n << "  " << real(yDFT[i]) << "  " << imag(yDFT[i]) << "  " << endl;
+
+    #endif // OLD
+    #ifdef CX11
+
+        ofstream output;
+        output.open(name);
+        // first the negative values are printed, then, the positive values are printed
+        for(int i=4*n+4-limit; i<4*n+4; i=i+div)    output << (i-4*n -4)*xMax/n << "  " << real(yDFT[i]) << "  " << imag(yDFT[i]) << "  " << endl;
+        for(int i=0;           i<limit; i=i+div)    output << i*xMax/n << "  " << real(yDFT[i]) << "  " << imag(yDFT[i]) << "  " << endl;
+
+    #endif // CX11
+}
 
 void AWT::asymmetryTest(string & name, int parRe, int parIm, int div, double range, string & output_mode)
 {
@@ -591,9 +596,41 @@ void AWT::cleanOUT(int exp)
 ////////////////////////////////////////////////////////////////////////
 
 
+// Kernel3 for KRAMMERS KRONIG
+void AWT::Kernel3()
+{
+    y[1] =  0;
+    y[1] =  4*log(3.0/2.0);
+    y[2] = 10*log(4.0/3.0) -6*log(3.0/2.0);
 
+    int i;
+    for(i=3; i<n+1; i++)
+    {
+        if(i<1000)
+        {
+            y[i] =     (1-i*i)*(i-2)         *atanh(1.0/(1 - 2*i))
+                   +   (1-i*i)*(i+2)         *atanh(1.0/(1 + 2*i))
+                   +   (i*i*i-6*i*i+11*i-6)  *atanh(1.0/(3 - 2*i))/3.0
+                   +   (i+3)*(i*i+3*i+2)     *atanh(1.0/(3 + 2*i))/3.0;
+        }
+        else    y[i] = 1.0/i;
 
+    }
+    for(i=n+1;   i<3*n+4; i++)         y[i] =  0;
+    for(i=3*n+4; i<4*n+4; i++)         y[i] =  -y[4*n+4-i];
+    for(i=0;     i<4*n+4; i++)      yDFT[i] =  0;
 
+}
+
+void AWT::cosine(double constant)
+{
+    int i;
+                                          y[0] = cos(0);
+    for( i = 1;      i < n+1;      i++ )  y[i] = cos(constant*i*xMax/n);
+    for( i = n+1;    i < 3*n + 4;  i++ )  y[i] = 0;
+    for( i = 3*n+4;  i < 4*n + 4;  i++ )  y[i] = cos(-constant*(4*n+4-i)*xMax/n);
+
+}
 // multiply AWT with its Fermi-Dirac function
 void AWT::normalFDtimesIM(AWT & X, AWT & f_FD)
 {
@@ -625,23 +662,24 @@ void AWT::inverseBEtimesIM(AWT & X, AWT & f_BE)
     for( i = 1;        i < X.n+1;      i++ ){ y[i] = imag(X.y[4*X.n+4-i]) * f_BE.y[i];}
     for( i = X.n+1;    i < 3*X.n + 4;  i++ ){ y[i] = 0;}
     for( i = 3*X.n+4;  i < 4*X.n + 4;  i++ ){ y[i] = imag(X.y[4*X.n+4-i]) * f_BE.y[i];}
-    dftKnown = false;
 }
 
 // conjugate AWT body with specifying the output
 void AWT::conjugateY(AWT & inX)
 {
     for(int i=0; i < inX.nn; i++)  y[i]  =  conj(inX.y[i]);
-    dftKnown = false;
 }
 
 // conjugate just the DFT part
 void AWT::conjugateDFT(AWT & inX)
 {
     for(int i=0; i < inX.nn; i++)  yDFT[i]  =  conj(inX.yDFT[i]);
-    dftKnown = false;
 }
 
+void AWT::multiplyAWT(AWT & timesX, AWT & timesY)
+{
+    for(int i=0; i<timesX.nn; i++){  y[i] = timesX.y[i] * timesY.y[i]; }
+}
 // real part is deleted
 void AWT::deleteReal(AWT & Gin)
 {
@@ -650,7 +688,6 @@ void AWT::deleteReal(AWT & Gin)
         complex<double> u(0, imag(Gin.y[i]) );
         y[i]= u;
     }
-    dftKnown = false;
 }
 
 // imag part is deleted
@@ -661,14 +698,13 @@ void AWT::deleteImag(AWT & Gin)
         complex<double> u(real(Gin.y[i]), 0);
         y[i]= u;
     }
-    dftKnown = false;
 }
 
 
 // Krammers Kronig for the upper complex plane
 void AWT::KrammersKronig(AWT & G, AWT & Kernel, AWT & ReG, AWT & ImG, AWT & aux1, AWT & aux2)
 {
-    //double Pi=3.14159265359;
+    double Pi=3.14159265359;
 
     int i;
     for(i=0; i<4*G.n+4; i++)
@@ -685,15 +721,13 @@ void AWT::KrammersKronig(AWT & G, AWT & Kernel, AWT & ReG, AWT & ImG, AWT & aux1
         y[i] = u;
     }
 
-    ReG.dftKnown = false;
-    ImG.dftKnown = false;
-    aux1.dftKnown = false;
-    aux2.dftKnown = false;
 }
 
 // Krammers Kronig for the lower complex plane
 void AWT::KrammersKronigDown(AWT & G, AWT & Kernel, AWT & ReG, AWT & ImG, AWT & aux1, AWT & aux2)
 {
+    double Pi=3.14159265359;
+
     int i;
     for(i=0; i<4*G.n+4; i++)
     {
@@ -708,11 +742,6 @@ void AWT::KrammersKronigDown(AWT & G, AWT & Kernel, AWT & ReG, AWT & ImG, AWT & 
         complex<double> u( G.n*real(ReG.y[i])/Pi/G.xMax, imag(G.y[i]) );
         y[i] = u;
     }
-
-    ReG.dftKnown = false;
-    ImG.dftKnown = false;
-    aux1.dftKnown = false;
-    aux2.dftKnown = false;
 }
 
 void AWT::multiplyAWT(AWT & X, complex<double> u)
@@ -721,6 +750,23 @@ void AWT::multiplyAWT(AWT & X, complex<double> u)
     for(i=0; i<X.nn; i++)   y[i] = u*X.y[i];
 }
 
+void AWT::derivativeAWT(AWT & X)
+{
+    // numerical derivation of given AWT
+
+    // positive frequencies
+                                                   y[0]       = ( X.y[1]       - X.y[4*X.n+3]   ) / ( 2 * X.xMax / X.n);
+    for(int i = 1;        i < X.n;        i++ )    y[i]       = ( X.y[i+1]     - X.y[i-1]       ) / ( 2 * X.xMax / X.n);
+                                                   y[X.n]     = ( X.y[X.n]     - X.y[X.n-1]     ) / (     X.xMax / X.n);
+
+    // zero padding
+    for(int i = X.n+1;    i < 3*X.n + 4;  i++ )    y[i]       = 0;
+
+    // negative frequencies
+                                                   y[3*X.n+4] = ( X.y[3*X.n+5] - X.y[3*X.n+4]   ) / (     X.xMax / X.n);
+    for(int i = 3*X.n+5;  i < 4*X.n + 3;  i++ )    y[i]       = ( X.y[i+1]     - X.y[i-1]       ) / ( 2 * X.xMax / X.n);
+                                                   y[4*X.n+3] = ( X.y[0]       - X.y[4*X.n+2]   ) / ( 2 * X.xMax / X.n);
+}
 
 ///////////////////////////////////////////////////////////////////////////
 //////////             OPERATIONS BETWEEN AWTs                  //////////
@@ -750,8 +796,8 @@ void AWT::doubleInverse(AWT & Gin)
 // convolve two AWTs
 void AWT::convolutionAWT(AWT & inX, AWT & inY, int sig1, int sig2, AWT & helpX, AWT & helpY)
 {
-    if(inX.dftKnown == 0 )     {  inX.forwardDFT();  }        // DFT of inX if not available
-    if(inY.dftKnown == 0 )     {  inY.forwardDFT();  }        // DFT of inY if not available
+    inX.forwardDFT();    // DFT of inX if not available
+    inY.forwardDFT();    // DFT of inY if not available
 
     helpX.loadAWTtoAWT(inX);
     helpY.loadAWTtoAWT(inY);
@@ -777,12 +823,8 @@ void AWT::convolutionAWT(AWT & inX, AWT & inY, int sig1, int sig2, AWT & helpX, 
     }
 
     // the output AWT is always set closed for next convolutionAWT instance
-    dftKnown = true;
     backwardDFT();
 
-    // auxiliary AWTs are always set open for next convolutionAWT instance
-    helpX.dftKnown = false;
-    helpY.dftKnown = false;
 };
 
 
@@ -790,6 +832,8 @@ void AWT::convolutionAWT(AWT & inX, AWT & inY, int sig1, int sig2, AWT & helpX, 
 // perform Fermi-Dirac summation over two AWTs
 void AWT::fermMatsubaraImP(AWT & X, AWT & Y, int sig1, int sig2, AWT & f_FD, AWT & x1, AWT & x2, AWT & y1, AWT & y2, AWT & aux1, AWT & aux2 )
 {
+    double Pi=3.14159265359;
+
     // FIRST PART of the fermi sum of two AWTs is calculated
     x1.normalFDtimesIM(X, f_FD);
     y1.deleteReal(Y);
@@ -805,13 +849,6 @@ void AWT::fermMatsubaraImP(AWT & X, AWT & Y, int sig1, int sig2, AWT & f_FD, AWT
 
     // first and second part are added tgether and stored in the out AWT
     for(int i=0; i < X.nn; i++)         y[i] = x1.y[i] + x2.y[i];
-
-      x1.dftKnown = false;
-      x2.dftKnown = false;
-      y1.dftKnown = false;
-      y2.dftKnown = false;
-    aux1.dftKnown = false;
-    aux2.dftKnown = false;
 }
 
 
@@ -819,6 +856,8 @@ void AWT::fermMatsubaraImP(AWT & X, AWT & Y, int sig1, int sig2, AWT & f_FD, AWT
 // perform Bose-Einstein summation over two AWTs
 void AWT::boseMatsubaraImP(AWT & Xb, AWT & Y, int sig1, int sig2, AWT & f_FD, AWT & f_BE, AWT & x1, AWT & x2, AWT & y1, AWT & y2, AWT & aux1, AWT & aux2 )
 {
+    double Pi=3.14159265359;
+
     // FIRST PART of the fermi sum of two AWTs is calculated
     x1.normalBEtimesIM(Xb, f_BE);
     y1.deleteReal(Y);
@@ -840,14 +879,6 @@ void AWT::boseMatsubaraImP(AWT & Xb, AWT & Y, int sig1, int sig2, AWT & f_FD, AW
 
     // first and second part are added tgether and stored in the out AWT
     for(int i=0; i < Xb.nn; i++)         y[i] = x1.y[i] + x2.y[i];
-
-      x1.dftKnown = false;
-      x2.dftKnown = false;
-      y1.dftKnown = false;
-      y2.dftKnown = false;
-    aux1.dftKnown = false;
-    aux2.dftKnown = false;
-
 }
 
 complex<double> AWT::coth(complex<double>  numb)
@@ -859,255 +890,4 @@ complex<double> AWT::tanh(complex<double>  numb)
 {
     return ( -1.0 + exp(2.0*numb) ) / ( 1.0 + exp(2.0*numb) );
 }
-
-
-
-/*
-void AWT::test_matsubara_sums(int n, double xMax)
-{
-	// the test functions are considered at kT = 1
-	double kT = 1;
-
-	// imaginary unit I and constant Pi
-	complex<double>  I (0,1);
-	double Pi = 3.14159265359;
-
-	// name of the file to export, x variable
-	string name;
-	string export_mode = "cx11";
-	double xx;
-
-	// Defining and seting the distributions and kernel function as AWT arrays
-	AWT FD, BE, K3;
-        K3.initializeAWT(n, xMax, kT);
-        FD.initializeAWT(n, xMax, kT);
-        BE.initializeAWT(n, xMax, kT);
-        K3.Kernel3();
-        FD.setFD(n, xMax, kT);
-        BE.setBE(n, xMax, kT);
-
-	// defining AWT arrays for the test functions B, C and exact results, p means sigma = 1 , m means sigma = -1
-	AWT U, B, C, R, Bpp, Bpm, Bmp, Bmm, Fpp, Fpm, Fmp, Fmm;
-	  B.initializeAWT(n, xMax, kT);
-	  C.initializeAWT(n, xMax, kT);
-	  R.initializeAWT(n, xMax, kT);
-	Bpp.initializeAWT(n, xMax, kT);
-	Bpm.initializeAWT(n, xMax, kT);
-	Bmp.initializeAWT(n, xMax, kT);
-	Bmm.initializeAWT(n, xMax, kT);
-	Fpp.initializeAWT(n, xMax, kT);
-	Fpm.initializeAWT(n, xMax, kT);
-	Fmp.initializeAWT(n, xMax, kT);
-	Fmm.initializeAWT(n, xMax, kT);
-
-	// setting the AWT arrays the for test functions B, C and exact results for positive frequencies
-	for( int iii = 0;      iii<n+1;    iii++ )
-	{
-		xx = iii*xMax/n;
-		  B.y[iii] = 1.0/(xx - I - 1.0);
-		  C.y[iii] = 1.0/(xx - I - 2.0);
-		Bpp.y[iii] = (-U.coth( 1.0 + 0.5*I) + U.coth( 0.5 + 0.5*I - 0.5*xx) ) / ( 2.0 + 2.0*xx );
-		Bpm.y[iii] = ( U.coth( 1.0 + 0.5*I) + U.coth( 0.5 + 0.5*I - 0.5*xx) ) / ( 6.0 +4.0*I - 2.0*xx );
-		Bmp.y[iii] = ( U.coth( 1.0 + 0.5*I) - U.coth( 0.5 + 0.5*I + 0.5*xx) ) / ( -2.0 + 2.0*xx );
-		Bmm.y[iii] = ( U.coth( 1.0 + 0.5*I) + U.coth( 0.5 + 0.5*I + 0.5*xx) ) / ( 6.0 + 4.0*I + 2.0*xx );
-		Fpp.y[iii] = (-U.tanh( 1.0 + 0.5*I) + U.tanh( 0.5 + 0.5*I - 0.5*xx) ) / ( 2.0 + 2.0*xx );
-		Fpm.y[iii] = ( U.tanh( 1.0 + 0.5*I) + U.tanh( 0.5 + 0.5*I - 0.5*xx) ) / ( 6.0 + 4.0*I - 2.0*xx );
-		Fmp.y[iii] = ( U.tanh( 1.0 + 0.5*I) - U.tanh( 0.5 + 0.5*I + 0.5*xx) ) / ( -2.0 + 2.0*xx );
-		Fmm.y[iii] = ( U.tanh( 1.0 + 0.5*I) + U.tanh( 0.5 + 0.5*I + 0.5*xx) ) / ( 6.0 + 4.0*I + 2.0*xx );
-	}
-	// zero padding of the AWT arrays of the test functions B, C and exact results
-	for( int iii = n+1;    iii<3*n+4;  iii++ )
-	{
-		  B.y[iii] = 0;
-		  C.y[iii] = 0;
-		Bpp.y[iii] = 0;
-		Bpm.y[iii] = 0;
-		Bmp.y[iii] = 0;
-		Bmm.y[iii] = 0;
-		Fpp.y[iii] = 0;
-		Fpm.y[iii] = 0;
-		Fmp.y[iii] = 0;
-		Fmm.y[iii] = 0;
-	}
-
-	// setting AWT arrays the for test functions B, C and exact results for negative frequencies
-	for( int iii = 3*n+4;  iii<4*n+4;  iii++ )
-	{
-		xx = (iii - 4*n -4) *xMax/n;
-		B.y[iii] = 1.0/(xx - I - 1.0);
-		C.y[iii] = 1.0/(xx - I - 2.0);
-		Bpp.y[iii] = (-U.coth( 1.0 + 0.5*I) + U.coth( 0.5 + 0.5*I - 0.5*xx) ) / ( 2.0 + 2.0*xx );
-		Bpm.y[iii] = ( U.coth( 1.0 + 0.5*I) + U.coth( 0.5 + 0.5*I - 0.5*xx) ) / ( 6.0 +4.0*I - 2.0*xx );
-		Bmp.y[iii] = ( U.coth( 1.0 + 0.5*I) - U.coth( 0.5 + 0.5*I + 0.5*xx) ) / ( -2.0 + 2.0*xx );
-		Bmm.y[iii] = ( U.coth( 1.0 + 0.5*I) + U.coth( 0.5 + 0.5*I + 0.5*xx) ) / ( 6.0 + 4.0*I + 2.0*xx );
-		Fpp.y[iii] = (-U.tanh( 1.0 + 0.5*I) + U.tanh( 0.5 + 0.5*I - 0.5*xx) ) / ( 2.0 + 2.0*xx );
-		Fpm.y[iii] = ( U.tanh( 1.0 + 0.5*I) + U.tanh( 0.5 + 0.5*I - 0.5*xx) ) / ( 6.0 + 4.0*I - 2.0*xx );
-		Fmp.y[iii] = ( U.tanh( 1.0 + 0.5*I) - U.tanh( 0.5 + 0.5*I + 0.5*xx) ) / ( -2.0 + 2.0*xx );
-		Fmm.y[iii] = ( U.tanh( 1.0 + 0.5*I) + U.tanh( 0.5 + 0.5*I + 0.5*xx) ) / ( 6.0 + 4.0*I + 2.0*xx );
-	}
-
-
-
-
-	// exporting test AWT arrays and distributions as functions
-	name = "Txt/B";
-    B.exportAWTasFUN(name, 10, 10, 1, export_mode);
-	name = "Txt/C";
-    C.exportAWTasFUN(name, 10, 10, 1, export_mode);
-	name = "Txt/FDtest";
-    FD.exportAWTasFUN(name, 10, 10, 1, export_mode);
-	name = "Txt/BEtest";
-    BE.exportAWTasFUN(name, 10, 10, 1, export_mode);
-
-	// Calculating the corresponding Matsubara sums and exporting them
-
-	// Test FermMatsubara[A,B,1,1]
-	R.fermMatsubaraImP(B, C, 1, 1, FD);
-	R.KrammersKronig(R,K3);
-	name = "Txt/MatFermPP";
-    R.exportAWTasFUN(name, 10, 10, 1, export_mode);
-    cout << "Fermi[1,1]" << endl;
-
-	// Test FermMatsubara[A,B,1,-1]
-	R.fermMatsubaraImP(B, C, 1, -1, FD);
-	R.KrammersKronig(R,K3);
-	name = "Txt/MatFermPM";
-    R.exportAWTasFUN(name, 10, 10, 1, export_mode);
-    cout << "Fermi[1,-1]" << endl;
-
-	// Test BoseMatsubara[A,B,-1,1]
-	R.fermMatsubaraImP(B, C, -1, 1, FD);
-	R.KrammersKronig(R,K3);
-	name = "Txt/MatFermMP";
-    R.exportAWTasFUN(name, 10, 10, 1, export_mode);
-    cout << "Fermi[-1,1]" << endl;
-
-	// Test BoseMatsubara[A,B,-1,-1]
-	R.fermMatsubaraImP(B, C, -1, -1, FD);
-	R.KrammersKronig(R,K3);
-	name = "Txt/MatFermMM";
-    R.exportAWTasFUN(name, 10, 10, 1, export_mode);
-    cout << "Fermi[-1,-1]" << endl;
-
-	// exporting exact analytical results for comparison, p means sigma = 1 , m means sigma = -1
-	name = "Txt/ExactBosePP";
-    Bpp.exportAWTasFUN(name, 10, 10, 1, export_mode);
-
-	name = "Txt/ExactBosePM";
-    Bpm.exportAWTasFUN(name, 10, 10, 1, export_mode);
-
-	name = "Txt/ExactBoseMP";
-    Bmp.exportAWTasFUN(name, 10, 10, 1, export_mode);
-
-	name = "Txt/ExactBoseMM";
-    Bmm.exportAWTasFUN(name, 10, 10, 1, export_mode);
-
-	name = "Txt/ExactFermPP";
-    Fpp.exportAWTasFUN(name, 10, 10, 1, export_mode);
-
-	name = "Txt/ExactFermPM";
-    Fpm.exportAWTasFUN(name, 10, 10, 1, export_mode);
-
-	name = "Txt/ExactFermMP";
-    Fmp.exportAWTasFUN(name, 10, 10, 1, export_mode);
-
-	name = "Txt/ExactFermMM";
-    Fmm.exportAWTasFUN(name, 10, 10, 1, export_mode);
-
-// Test BoseMatsubara[A,B,1,1]
-	R.boseMatsubaraImP(B, C, 1, 1, FD, BE);
-	R.KrammersKronig(R,K3);
-	name = "Txt/MatBosePP";
-    R.exportAWTasFUN(name, 10, 10, 1, export_mode);
-    cout << "Bose[1,1]" << endl;
-
-	// Test BoseMatsubara[A,B,1,-1]
-	R.boseMatsubaraImP(B, C, 1, -1, FD, BE);
-	R.KrammersKronig(R,K3);
-	name = "Txt/MatBosePM";
-    R.exportAWTasFUN(name, 10, 10, 1, export_mode);
-    cout << "Bose[1,-1]" << endl;
-
-	// Test BoseMatsubara[A,B,-1,1]
-	R.boseMatsubaraImP(B, C, -1, 1, FD, BE);
-	R.KrammersKronig(R,K3);
-	name = "Txt/MatBoseMP";
-    R.exportAWTasFUN(name, 10, 10, 1, export_mode);
-    cout << "Bose[-1,1]" << endl;
-
-	// Test BoseMatsubara[A,B,-1,-1]
-	R.boseMatsubaraImP(B, C, -1, -1, FD, BE);
-	R.KrammersKronig(R,K3);
-	name = "Txt/MatBoseMM";
-    R.exportAWTasFUN(name, 10, 10, 1, export_mode);
-    cout << "Bose[-1,-1]" << endl;
-
-
-
-
-    cout << "finished" << endl;
-
-}
-
-
-
-
-// perform Fermi-Dirac summation over two AWTs
-void AWT::fermMatsubaraImPprint(AWT & X, AWT & Y, int sig1, int sig2, AWT & f_FD)
-{
-    string name;
-    string export_mode = "cx11";
-
-    double Pi=3.14159265359;
-    AWT x1;                                          // u_1: AWT for calculating the first part
-    x1.initializeAWT(X.n,   X.xMax,  X.kT);
-    AWT x2;                                          // u_2: AWT for calculating the second part
-    x2.initializeAWT(X.n,   X.xMax,  X.kT);
-    AWT y1;
-    y1.initializeAWT(X.n,   X.xMax,  X.kT);
-    AWT y2;
-    y2.initializeAWT(X.n,   X.xMax,  X.kT);
-
-    // FIRST PART of the fermi sum of two AWTs is calculated
-    x1.normalFDtimesIM(X, f_FD);
-    y1.deleteReal(Y);
-
-    name = "Txt/x1";
-    x1.exportAWTasFUN(name, 10, 10, 1, export_mode);
-    name = "Txt/y1";
-    y1.exportAWTasFUN(name, 10, 10, 1, export_mode);
-
-    x1.convolutionAWT(x1, y1, sig1, -sig2);           // integral over real arguments
-    x1.multiplyAWT(x1, -sig1/Pi);                        // multiply with proper factor
-
-
-    name = "Txt/u1";
-    x1.exportAWTasFUN(name, 10, 10, 1, export_mode);
-
-
-    // SECOND PART of the bose sum of two AWTs is calculated
-    if(sig2 == 1)         x2.normalFDtimesIM(Y, f_FD);
-    if(sig2 ==-1)         x2.inverseFDtimesIM(Y, f_FD);
-    y2.deleteReal(X);
-
-    name = "Txt/x2";
-    x2.exportAWTasFUN(name, 10, 10, 1, export_mode);
-    name = "Txt/y2";
-    y2.exportAWTasFUN(name, 10, 10, 1, export_mode);
-
-    x2.convolutionAWT(x2, y2, -sig1*sig2, -1);       // integral over real arguments
-    x2.multiplyAWT(x2, sig1/Pi);                      // multiply with proper factor
-
-    name = "Txt/u2";
-    x2.exportAWTasFUN(name, 10, 10, 1, export_mode);
-
-    // first and second part are added tgether and stored in the out AWT
-    for(int i=0; i < X.nn; i++)         y[i] = x1.y[i] + x2.y[i];
-
-    name = "Txt/sum";
-    exportAWTasFUN(name, 10, 10, 1, export_mode);
-}
-
-*/
-
 
