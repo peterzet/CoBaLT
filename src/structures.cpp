@@ -20,9 +20,17 @@
 #include <iomanip> // setprecision
 
 
-auxiliary::auxiliary(){    aux_initialize(0, 0, 0);}
+AUX::AUX()
+{
+    AWT aux1;
+    AWT aux2;
+    AWT aux3;
+    AWT aux4;
+    AWT aux5;
+    AWT aux6;
+}
 
-void auxiliary::aux_initialize(int n, double x, double kT)
+void AUX::initialize(int n, double x, double kT)
 {
     aux1.initializeAWT(n, x, kT);
     aux2.initializeAWT(n, x, kT);
@@ -32,39 +40,10 @@ void auxiliary::aux_initialize(int n, double x, double kT)
     aux6.initializeAWT(n, x, kT);
 }
 
-auxiliary::~auxiliary()
+AUX::~AUX()
 {
-        fftw_free(aux1.y);
-    fftw_free(aux1.yINTER);
-    fftw_destroy_plan(aux1.forwardFFT);
-    fftw_destroy_plan(aux1.backwardFFT);
 
-        fftw_free(aux2.y);
-    fftw_free(aux2.yINTER);
-    fftw_destroy_plan(aux2.forwardFFT);
-    fftw_destroy_plan(aux2.backwardFFT);
-
-        fftw_free(aux3.y);
-    fftw_free(aux3.yINTER);
-    fftw_destroy_plan(aux3.forwardFFT);
-    fftw_destroy_plan(aux3.backwardFFT);
-
-        fftw_free(aux4.y);
-    fftw_free(aux4.yINTER);
-    fftw_destroy_plan(aux4.forwardFFT);
-    fftw_destroy_plan(aux4.backwardFFT);
-
-        fftw_free(aux5.y);
-    fftw_free(aux5.yINTER);
-    fftw_destroy_plan(aux5.forwardFFT);
-    fftw_destroy_plan(aux5.backwardFFT);
-
-        fftw_free(aux6.y);
-    fftw_free(aux6.yINTER);
-    fftw_destroy_plan(aux6.forwardFFT);
-    fftw_destroy_plan(aux6.backwardFFT);
 }
-
 
 void info::importing(string name)
 {
@@ -413,7 +392,7 @@ void multiply_tensor(tensor & in, complex<double> val)
     in.mmm = ( in.mmm ) * val;
 }
 
-/*
+
 void integrate_tensor(AWT & in, tensor & out, int ind1, int ind2, int ind3)
 {
     if( ind1 ==  1 && ind2 ==  1 && ind3 ==  1)  { out.ppp = Simpson(in); }
@@ -428,7 +407,7 @@ void integrate_tensor(AWT & in, tensor & out, int ind1, int ind2, int ind3)
 
     if( ind1 == -1 && ind2 == -1 && ind3 == -1)  { out.mmm = Simpson(in);  }
 }
-*/
+
 
 void subtract_tensors(tensor & out, tensor & in1, tensor & in2)
 {

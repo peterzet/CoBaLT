@@ -31,10 +31,8 @@ void rawF::initRawF(int _n, double _xMax, double _kT)
     f.resize(2*n+1);
     complex<double> u(0,0);
     int i;
-    for(i=0; i < 2*n+1; i++)
-        {
-        f[i] = u;
-        }
+    for(i=0; i < 2*n+1; i++)    f[i] = u;
+
 }
 
 rawF::~rawF()

@@ -69,7 +69,6 @@ class AWT: public rawF
         void loadDFTtoAWT(AWT &);
         void loadFUNtoAWT(rawF &);
 
-        void asymmetryTest(string &, int, int, int, double, string &);
 
         void cleanOUT(int);
 
@@ -116,8 +115,7 @@ class AWT: public rawF
         void boseMatsubaraReP(AWT &, AWT &, int, int, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &, AWT &);
 
 
-        complex<double> coth(complex<double>);
-        complex<double> tanh(complex<double>);
+
 
 
 

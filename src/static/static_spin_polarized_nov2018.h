@@ -1,11 +1,14 @@
-#ifndef CALCULATOR_H
-#define CALCULATOR_H
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//          Calculates mean-field theory of frequency dependent vertices according to Janis may 2018
+//                                  Vertices are momentum independent
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//#include "ArrayWithTails.h"
-//#include "rawFunction.h"
-#include "AWT.h"
 
-#include <boost/math/tools/minima.hpp>
+#ifndef EFFECTIVE_STAT_SPINPOLARIZED_H
+#define EFFECTIVE_STAT_SPINPOLARIZED_H
+
+
+#include "../Calculator.h"
 
 #include <iostream>         // standard library for reading inputs
 #include <fstream>          // standard library for showing outputs
@@ -20,25 +23,15 @@
                             // random number generation, communication with the environment,
                             // integer arithmetics, searching, sorting and converting
 
-//#include "gnuplot-iostream.h"
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////           THE SOLVER FOR SPECIFIC PROBLEMS IS DEFINED HERE                      /////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// assesment functions
-double NormL2(AWT &, AWT &);
-void asymmetryTest(rawF &, AWT &, int, int);
 
-// integrating functions
-complex<double> Trapezoid(AWT &);
-double Trapezoid_Im(AWT &);
-double Trapezoid_Re(AWT &);
-
-complex<double> Simpson(AWT &);
-double Simpson_Im(AWT &);
-double Simpson_Re(AWT &);
+// PARQUETS EFFECTIVE INTERACTION APPROX
+void dynamic_spins_matrix(string);
+void static_spins_matrix(string);
+void static_spins_specs(string);
+void static_Lp(string);
 
 
-#endif // CALCULATOR_H
+
+#endif // EFFECTIVE_STAT_SPINPOLARIZED_H

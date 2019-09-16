@@ -29,7 +29,7 @@
 // #define FFTW_METHOD FFTW_EXHAUSTIVE
 
 // Formal constructor of AWT
-AWT::AWT(){    initializeAWT(0, 0, 0);}
+AWT::AWT(){   initializeAWT(0, 0, 0);  }
 
 // The initializer of AWT
 void AWT::initializeAWT(int _n, double _x, double _kT)
@@ -404,7 +404,7 @@ void AWT::exportAWTasAWT(string & name, int div, string & output_mode)
         ofstream output(name.c_str());
         for(  int i=0;   i < 4*n+4;  i=i+div)   output << i << "  " << real(y[i]) << "  " << imag(y[i]) << "  " << real(yDFT[i]) << "  " << imag(yDFT[i]) << "" << endl;
     }
-    if(output_mode == "c11")
+    if(output_mode == "cx11")
     {
         ofstream output;
         output.open(name);
@@ -462,103 +462,6 @@ void AWT::exportDFTasFUN(string & name, int div, double range, string & output_m
     #endif // CX11
 }
 
-void AWT::asymmetryTest(string & name, int parRe, int parIm, int div, double range, string & output_mode)
-{
-    int limit=n*range/xMax;
-
-    #ifdef OLD
-
-        ofstream output(name.c_str());
-
-        // symmetric real and symmetric imag part
-        if( (parRe == 1) && (parIm == 1)  )
-        {
-            // the negative values are printed
-            for(int i=4*n+4-limit; i<4*n+4; i=i+div)    output << (i-4*n-4)*xMax/n << "  " << 100*(real(y[i]) - real(y[4*n+4-i])  )/real(y[i])  << "  " << 100*(imag(y[i]) - imag(y[4*n+4-i]) )/real(y[i]) << "  " << endl;
-            // the value at x=0 is printed
-                                                        output << 0 << "  " << real(y[0])  << "  " << imag(y[0]) << "  " << endl;
-            // the positive values are printed
-            for(int i=div; i<n+1-limit; i=i+div)        output << (i)*xMax/n << "  " << 100*(real(y[i]) - real(y[4*n+4-i])  )/real(y[i])  << "  " << 100*(imag(y[i]) - imag(y[4*n+4-i]) )/real(y[i]) << "  " << endl;
-        }
-        // symmetric real and antisymmetric imag part
-        if( (parRe == 1) && (parIm == -1)  )
-        {
-            // the negative values are printed
-            for(int i=4*n+4-limit; i<4*n+4; i=i+div)    output << (i-4*n-4)*xMax/n << "  " << 100*(real(y[i]) - real(y[4*n+4-i])  )/real(y[i])  << "  " << 100*(imag(y[i]) + imag(y[4*n+4-i]) )/real(y[i]) << "  " << endl;
-            // the value at x=0 is printed
-                                                        output << 0 << "  " << real(y[0])  << "  " << imag(y[0]) << "  " << endl;
-            // the positive values are printed
-            for(int i=div; i<n+1-limit; i=i+div)        output << (i)*xMax/n << "  " << 100*(real(y[i]) - real(y[4*n+4-i])  )/real(y[i])  << "  " << 100*(imag(y[i]) + imag(y[4*n+4-i]) )/real(y[i]) << "  " << endl;
-        }
-        // antisymmetric real and symmetric imag part
-        if( (parRe == -1) && (parIm == 1)  )
-        {
-            // the negative values are printed
-            for(int i=4*n+4-limit; i<4*n+4; i=i+div)     output << (i-4*n-4)*xMax/n << "  " << 100*(real(y[i]) + real(y[4*n+4-i])  )/real(y[i])  << "  " << 100*(imag(y[i]) - imag(y[4*n+4-i]) )/real(y[i]) << "  " << endl;
-            // the value at x=0 is printed
-                                                         output << 0 << "  " << real(y[0])  << "  " << imag(y[0]) << "  " << endl;
-            // the positive values are printed
-            for(int i=div; i<n+1-limit; i=i+div)         output << (i)*xMax/n << "  " << 100*(real(y[i]) + real(y[4*n+4-i])  )/real(y[i])  << "  " << 100*(imag(y[i]) - imag(y[4*n+4-i]) )/real(y[i]) << "  " << endl;
-        }
-        // antisymmetric real and antisymmetric imag part
-        if( (parRe == -1) && (parIm == -1) )
-        {
-            // the negative values are printed
-            for(int i=4*n+4-limit; i<4*n+4; i=i+div)    output << (i-4*n-4)*xMax/n << "  " << 100*(real(y[i]) + real(y[4*n+4-i])  )/real(y[i])  << "  " << 100*(imag(y[i]) + imag(y[4*n+4-i]) )/real(y[i]) << "  " << endl;
-            // the value at x=0 is printed
-                                                        output << 0 << "  " << real(y[0])  << "  " << imag(y[0]) << "  " << endl;
-            // the positive values are printed
-            for(int i=div; i<n+1-limit; i=i+div)        output << (i)*xMax/n << "  " << 100*(real(y[i]) + real(y[4*n+4-i])  )/real(y[i])  << "  " << 100*(imag(y[i]) + imag(y[4*n+4-i]) )/real(y[i]) << "  " << endl;
-        }
-
-    #endif // OLD
-    #ifdef CX11
-        ofstream output;
-        output.open(name);
-
-        // symmetric real and symmetric imag part
-        if( (parRe == 1) && (parIm == 1)  )
-        {
-            // the negative values are printed
-            for(int i=4*n+4-limit; i<4*n+4; i=i+div)    output << (i-4*n-4)*xMax/n << "  " << 100*(real(y[i]) - real(y[4*n+4-i])  )/real(y[i])  << "  " << 100*(imag(y[i]) - imag(y[4*n+4-i]) )/real(y[i]) << "  " << endl;
-            // the value at x=0 is printed
-                                                        output << 0 << "  " << real(y[0])  << "  " << imag(y[0]) << "  " << endl;
-            // the positive values are printed
-            for(int i=div; i<n+1-limit; i=i+div)        output << (i)*xMax/n << "  " << 100*(real(y[i]) - real(y[4*n+4-i])  )/real(y[i])  << "  " << 100*(imag(y[i]) - imag(y[4*n+4-i]) )/real(y[i]) << "  " << endl;
-        }
-
-        // symmetric real and antisymmetric imag part
-        if( (parRe == 1) && (parIm == -1)  )
-        {
-            // the negative values are printed
-            for(int i=4*n+4-limit; i<4*n+4; i=i+div)    output << (i-4*n-4)*xMax/n << "  " << 100*(real(y[i]) - real(y[4*n+4-i])  )/real(y[i])  << "  " << 100*(imag(y[i]) + imag(y[4*n+4-i]) )/real(y[i]) << "  " << endl;
-            // the value at x=0 is printed
-                                                        output << 0 << "  " << real(y[0])  << "  " << imag(y[0]) << "  " << endl;
-            // the positive values are printed
-            for(int i=div; i<n+1-limit; i=i+div)        output << (i)*xMax/n << "  " << 100*(real(y[i]) - real(y[4*n+4-i])  )/real(y[i])  << "  " << 100*(imag(y[i]) + imag(y[4*n+4-i]) )/real(y[i]) << "  " << endl;
-        }
-        // antisymmetric real and symmetric imag part
-        if( (parRe == -1) && (parIm == 1)  )
-        {
-            // the negative values are printed
-            for(int i=4*n+4-limit; i<4*n+4; i=i+div)    output << (i-4*n-4)*xMax/n << "  " << 100*(real(y[i]) + real(y[4*n+4-i])  )/real(y[i])  << "  " << 100*(imag(y[i]) - imag(y[4*n+4-i]) )/real(y[i]) << "  " << endl;
-            // the value at x=0 is printed
-                                                        output << 0 << "  " << real(y[0])  << "  " << imag(y[0]) << "  " << endl;
-            // the positive values are printed
-            for(int i=div; i<n+1-limit; i=i+div)        output << (i)*xMax/n << "  " << 100*(real(y[i]) + real(y[4*n+4-i])  )/real(y[i])  << "  " << 100*(imag(y[i]) - imag(y[4*n+4-i]) )/real(y[i]) << "  " << endl;
-        }
-        // antisymmetric real and antisymmetric imag part
-        if( (parRe == -1) && (parIm == -1) )
-        {
-            // the negative values are printed
-            for(int i=4*n+4-limit; i<4*n+4; i=i+div)    output << (i-4*n-4)*xMax/n << "  " << 100*(real(y[i]) + real(y[4*n+4-i])  )/real(y[i])  << "  " << 100*(imag(y[i]) + imag(y[4*n+4-i]) )/real(y[i]) << "  " << endl;
-            // the value at x=0 is printed
-                                                        output << 0 << "  " << real(y[0])  << "  " << imag(y[0]) << "  " << endl;
-            // the positive values are printed
-            for(int i=div; i<n+1-limit; i=i+div)        output << (i)*xMax/n << "  " << 100*(real(y[i]) + real(y[4*n+4-i])  )/real(y[i])  << "  " << 100*(imag(y[i]) + imag(y[4*n+4-i]) )/real(y[i]) << "  " << endl;
-        }
-    #endif // CX11
-}
 
 ////////////////////////////////////////////////////////////////////////
 ////              To clean up very small entries                   ////
@@ -881,13 +784,5 @@ void AWT::boseMatsubaraImP(AWT & Xb, AWT & Y, int sig1, int sig2, AWT & f_FD, AW
     for(int i=0; i < Xb.nn; i++)         y[i] = x1.y[i] + x2.y[i];
 }
 
-complex<double> AWT::coth(complex<double>  numb)
-{
-    return ( 1.0 + exp(2.0*numb) ) / ( -1.0 + exp(2.0*numb) );
-}
 
-complex<double> AWT::tanh(complex<double>  numb)
-{
-    return ( -1.0 + exp(2.0*numb) ) / ( 1.0 + exp(2.0*numb) );
-}
 

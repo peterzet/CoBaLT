@@ -20,13 +20,12 @@
 
 
 
-//// Acronym AWT stands for ArrayWithTails
-
-struct auxiliary
+//// Acronym AUX stands for auxiliary functions
+struct AUX
 {
     public:
-        auxiliary();
-        ~auxiliary();
+        AUX();
+        ~AUX();
 
         AWT aux1;
         AWT aux2;
@@ -35,7 +34,7 @@ struct auxiliary
         AWT aux5;
         AWT aux6;
 
-    void aux_initialize(int,double,double);
+    void initialize(int,double,double);
 
 
 };
