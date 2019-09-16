@@ -1,0 +1,40 @@
+Model properties
+
+delta:         1
+mu:            0
+gap:           1
+gammaS:        0.5
+phi:           0.1
+model:         "SSN"
+
+Iteration parameters
+
+kT min:        0.01
+kT increment:  0.00
+kT max:        0.00
+
+U min:         2.5
+U increment:   0.0
+U max:         8.0
+
+x min:         0.0
+x increment:   0.0
+x max:         0.0
+
+
+h min:         0
+h increment:   0
+h max:         0
+
+Mesh parameters
+
+xMax:          200
+n:             2097151
+
+Txt output parameters
+
+display:       20
+range:         10 
+print mode:    0 
+export mode:   cx11
+physics:       dynamic_matrix
