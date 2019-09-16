@@ -1,7 +1,6 @@
 #ifndef STRUCTURES_H
 #define STRUCTURES_H
 
-#include "RAW.h"
 #include "AWT.h"
 #include "Calculator.h"
 
