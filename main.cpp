@@ -28,66 +28,17 @@
 
 using namespace std;
 
-//double PII = 3.14;
-
 
 
 int main()
 {
-    // TO DO 1: initialize appropriate structure
+	info input;
+	string name = "input";
+	input.importing(name);
+	
+	double Pi = 3.14159265359;
 
-    double delta, mu;
-    string model;
-
-    double kT_min, kT_increment, kT_max;
-    double U_min, U_increment, U_max;
-    double x_increment, x_max;
-
-    // intialization of variables for mesh properties
-    double xMax;
-    int n;
-    // intialization of variables for printing out txt files
-    int display;
-    double range;
-    int print_mode;
-    string export_mode, physics;
-
-    // TO do 1: end
-
-   string name = "input";
-
-/*
-    importInitial(name, delta, mu, model,
-                  kT_min, kT_increment, kT_max,
-                  U_min, U_increment, U_max,
-                  x_increment, x_max,
-                  xMax, n, display, range,
-                  print_mode, export_mode, physics);
-
-
-    name = "Txt/def";
-    createDocument(name, delta, mu, model,
-                  kT_min, kT_increment, kT_max,
-                  U_min, U_increment, U_max,
-                  x_increment, x_max,
-                  xMax, n, display, range,
-                  print_mode, export_mode, physics);
-
-
-    // intialization of variables which are then imputed by a txt file
-
-    // previously initialized variables are set to values from the input file
-    importInitial(name, delta, mu, model,
-                  kT_min, kT_increment, kT_max,
-                  U_min, U_increment, U_max,
-                  x_increment, x_max,
-                  xMax, n, display, range,
-                  print_mode, export_mode, physics);
-
-*/
-
-
-    double Pi = 3.14159265359;
+	// various physical models are selcted here
 
     //test_convolutions(n, xMax, range, export_mode);
     //dynamic_spins_half(name);
