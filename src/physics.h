@@ -19,23 +19,12 @@
 
 void createDirectories(string & );
 
-// import/export of model parameters
-void createDocument(string &, double &, double &, string &,
-                    double &, double &, double &,
-                    double &, double &, double &,
-                    double &, double &,
-                    double &, int &,
-                    int &, double &, int &, string &, string &);
-
-void importInitial(string &, double &, double &, string &,
-                    double &, double &, double &,
-                    double &, double &, double &,
-                    double &, double &,
-                    double &, int &,
-                    int &, double &, int &, string &, string &);
-
+// iteration parameters
 void precision(double, double, double, int &, int &, int &);
 void iterations(double, double, double, double, double, double, double, double, int &, int &, int &);
+
+
+
 void hartree_energies(double &, int, double, double, int, double, string, int, double, AWT &, AWT &);
 void preset(int, double &, int, double, double &, double &, double &);
 

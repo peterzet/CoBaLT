@@ -3,14 +3,14 @@
 #include "src/physics.h"
 
 // files for static problems
-#include "src/static/static_T0.h"
+//#include "src/static/static_T0.h"
 #include "src/static/static_spin_polarized_nov2018.h"
 
 // files for dynamic problems
-#include "src/dynamic/dynamic_spinles_experimental.h"
-#include "src/dynamic/dynamic_spinles.h"
-#include "src/dynamic/dynamic_spins.h"
-#include "src/dynamic/dynamic_spins_half.h"
+//#include "src/dynamic/dynamic_spinles_experimental.h"
+//#include "src/dynamic/dynamic_spinles.h"
+//#include "src/dynamic/dynamic_spins.h"
+//#include "src/dynamic/dynamic_spins_half.h"
 
 
 // files for convolution test
