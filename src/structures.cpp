@@ -65,57 +65,105 @@ auxiliary::~auxiliary()
     fftw_destroy_plan(aux6.backwardFFT);
 }
 
+
 void info::importing(string name)
 {
 
     ifstream ListFile;
-    ListFile.open (name.c_str());   // list contains all the file names to be processed
-    string item;                    // used for temporary store the data
+
+    // 1. determine number of strings in the input file
+    ListFile.open (name.c_str());
+    string item;                    // temporary storege for strings of input file
 
     if (ListFile.fail()) {cerr<< "Error opening the file" << endl; exit(1);}
-
-    for(int i=0; i<58; i++)
+    int entries = 0;                 // entries stores number of strings
+    while (!ListFile.eof())
     {
         ListFile >> item;
+        entries = entries + 1;
+    }
+    ListFile.close();
 
-        if(i == 3)   delta        = boost::lexical_cast<double>(item);
-        if(i == 5)   mu           = boost::lexical_cast<double>(item);
-        if(i == 7)   gap          = boost::lexical_cast<double>(item);
-        if(i == 9)   gammaS       = boost::lexical_cast<double>(item);
-        if(i == 11)  phi          = boost::lexical_cast<double>(item);
+    string input_entries[entries];
 
+    // 2. store all strings from the input
+    ListFile.open (name.c_str());   // list contains all the file names to be processed
+    for(int i=0; i<entries; i++)    ListFile >> input_entries[i];
+    ListFile.close();
 
-        if(i == 13)  model        = boost::lexical_cast<string>(item);
+    // 3. assign strings from the input to info variables
+    for(int i=0; i<entries; i++)
+    {
 
-        if(i == 18)  kT_min       = boost::lexical_cast<double>(item);
-        if(i == 21)  kT_increment = boost::lexical_cast<double>(item);
-        if(i == 24)  kT_max       = boost::lexical_cast<double>(item);
-
-        if(i == 27)  U_min        = boost::lexical_cast<double>(item);
-        if(i == 30)  U_increment  = boost::lexical_cast<double>(item);
-        if(i == 33)  U_max        = boost::lexical_cast<double>(item);
-
-        if(i == 36)  x_min        = boost::lexical_cast<double>(item);
-        if(i == 39)  x_increment  = boost::lexical_cast<double>(item);
-        if(i == 42)  x_max        = boost::lexical_cast<double>(item);
-
-        if(i == 48)  h_min        = boost::lexical_cast<double>(item);
-        if(i == 48)  h_increment  = boost::lexical_cast<double>(item);
-        if(i == 51)  h_max        = boost::lexical_cast<double>(item);
+        if (input_entries[i].compare("delta:")         == 0)         delta = boost::lexical_cast<double>(input_entries[i+1]);
+        if (input_entries[i].compare("mu:")            == 0)            mu = boost::lexical_cast<double>(input_entries[i+1]);
+        if (input_entries[i].compare("gap:")           == 0)           gap = boost::lexical_cast<double>(input_entries[i+1]);
+        if (input_entries[i].compare("gammaS:")        == 0)        gammaS = boost::lexical_cast<double>(input_entries[i+1]);
+        if (input_entries[i].compare("phi:")           == 0)           phi = boost::lexical_cast<double>(input_entries[i+1]);
+        if (input_entries[i].compare("model:")         == 0)         model = boost::lexical_cast<string>(input_entries[i+1]);
 
 
-        if(i == 55)  xMax         = boost::lexical_cast<double>(item);
-        if(i == 57)  n            = boost::lexical_cast<int>(item);
+        if ( (input_entries[i].compare("kT") == 0) &&  (input_entries[i+1].compare("min:") == 0)   )
+                                                                    kT_min = boost::lexical_cast<double>(input_entries[i+2]);
 
-        if(i == 62)  display      = boost::lexical_cast<int>(item);
-        if(i == 64)  range        = boost::lexical_cast<int>(item);
-        if(i == 67)  print_mode   = boost::lexical_cast<int>(item);
-        if(i == 70)  output_mode  = boost::lexical_cast<string>(item);
-        if(i == 72)  physics      = boost::lexical_cast<string>(item);
+        if ( (input_entries[i].compare("kT") == 0) &&  (input_entries[i+1].compare("increment:") == 0)   )
+                                                              kT_increment = boost::lexical_cast<double>(input_entries[i+2]);
+
+        if ( (input_entries[i].compare("kT") == 0) &&  (input_entries[i+1].compare("max:") == 0)   )
+                                                                    kT_max = boost::lexical_cast<double>(input_entries[i+2]);
+
+
+
+        if ( (input_entries[i].compare("U") == 0) &&  (input_entries[i+1].compare("min:") == 0)   )
+                                                                    U_min = boost::lexical_cast<double>(input_entries[i+2]);
+
+        if ( (input_entries[i].compare("U") == 0) &&  (input_entries[i+1].compare("increment:") == 0)   )
+                                                              U_increment = boost::lexical_cast<double>(input_entries[i+2]);
+
+        if ( (input_entries[i].compare("U") == 0) &&  (input_entries[i+1].compare("max:") == 0)   )
+                                                                    U_max = boost::lexical_cast<double>(input_entries[i+2]);
+
+
+
+        if ( (input_entries[i].compare("x") == 0) &&  (input_entries[i+1].compare("min:") == 0)   )
+                                                                    x_min = boost::lexical_cast<double>(input_entries[i+2]);
+
+        if ( (input_entries[i].compare("x") == 0) &&  (input_entries[i+1].compare("increment:") == 0)   )
+                                                              x_increment = boost::lexical_cast<double>(input_entries[i+2]);
+
+        if ( (input_entries[i].compare("x") == 0) &&  (input_entries[i+1].compare("max:") == 0)   )
+                                                                    x_max = boost::lexical_cast<double>(input_entries[i+2]);
+
+
+
+        if ( (input_entries[i].compare("h") == 0) &&  (input_entries[i+1].compare("min:") == 0)   )
+                                                                    h_min = boost::lexical_cast<double>(input_entries[i+2]);
+
+        if ( (input_entries[i].compare("h") == 0) &&  (input_entries[i+1].compare("increment:") == 0)   )
+                                                              h_increment = boost::lexical_cast<double>(input_entries[i+2]);
+
+        if ( (input_entries[i].compare("h") == 0) &&  (input_entries[i+1].compare("max:") == 0)   )
+                                                                    h_max = boost::lexical_cast<double>(input_entries[i+2]);
+
+
+        if (input_entries[i].compare("xMax:")    == 0)              xMax = boost::lexical_cast<double>(input_entries[i+1]);
+        if (input_entries[i].compare("n:")       == 0)                 n = boost::lexical_cast<int>(input_entries[i+1]);
+        if (input_entries[i].compare("display:") == 0)           display = boost::lexical_cast<int>(input_entries[i+1]);
+        if (input_entries[i].compare("range:")   == 0)             range = boost::lexical_cast<int>(input_entries[i+1]);
+
+
+        if ( (input_entries[i].compare("print") == 0) &&  (input_entries[i+1].compare("mode:") == 0)   )
+                                                              print_mode = boost::lexical_cast<int>(input_entries[i+2]);
+
+        if ( (input_entries[i].compare("export") == 0) &&  (input_entries[i+1].compare("mode:") == 0)   )
+                                                              output_mode = boost::lexical_cast<string>(input_entries[i+2]);
+
+        if (input_entries[i].compare("physics:") == 0)            physics = boost::lexical_cast<string>(item);
+
 
     }
 
-    ListFile.close();
+
 }
 
 
