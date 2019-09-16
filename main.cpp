@@ -36,19 +36,11 @@ int main()
 	string name = "input";
 	input.importing(name);
 	
-	double Pi = 3.14159265359;
+	test_convolutions(info.n, info.xMax, info.range, info.export_mode);
 
 	// various physical models are selcted here
 
-    //test_convolutions(n, xMax, range, export_mode);
-    //dynamic_spins_half(name);
-    //Effective_dynamic_2(name);
-    //dynamic_spins_matrix(name);
-    //static_spins_matrix(name);
-    //static_spins_specs(name);
 
-    //static_Lp(name);
-    //static_T_zero(name);
 
 
     return 0;
