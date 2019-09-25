@@ -201,23 +201,7 @@ void spectral_sigma_RPA(double U, AWT & PHI, AWT & GT, AWT & FD, AWT & BE, AWT &
     SigmaSpec.KrammersKronig(SigmaSpec,K3, aux1, aux2, aux3, aux4);
 }
 
-void spectral_sigma_EFF(double U, double Lambda, AWT & PHI, AWT & GT, AWT & FD, AWT & BE, AWT & K3, AWT & SigmaSpec, AWT & Int,
-                        AWT & aux1, AWT & aux2, AWT & aux3, AWT & aux4, AWT & aux5, AWT & aux6)
-{
 
-    for( int iii = 0;               iii<Int.n+1;     iii++ )
-    Int.y[iii] = U * Lambda * PHI.y[iii] / ( 1.0 + Lambda * PHI.y[iii]);
-
-    for( int iii = Int.n+1;   iii<3*Int.n+4; iii++ )
-    Int.y[iii] = 0;
-
-    for( int iii = 3*Int.n+4; iii<4*Int.n+4; iii++ )
-    Int.y[iii] = U * Lambda * PHI.y[iii] / ( 1.0 + Lambda * PHI.y[iii]);
-
-    SigmaSpec.boseMatsubaraImP(Int, GT, 1, 1, FD, BE, aux1, aux2, aux3, aux4, aux5, aux6);
-    SigmaSpec.KrammersKronig(SigmaSpec,K3, aux1, aux2, aux3, aux4);
-    SigmaSpec.multiplyAWT(SigmaSpec, -1.0);
-}
 
 void SigmaTherm_frequency(AWT & SigmaTherm, AWT & Lambda, double U, double nT, AWT & GT, AWT & FD, AWT & BE, AWT & K3,
                         AWT & aux1, AWT & aux2, AWT & aux3, AWT & aux4, AWT & aux5, AWT & aux6)

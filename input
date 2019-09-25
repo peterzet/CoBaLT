@@ -9,7 +9,7 @@ model:         "SSN"
 
 Iteration parameters
 
-kT min:        0.01
+kT min:        0.00
 kT increment:  0.00
 kT max:        0.00
 

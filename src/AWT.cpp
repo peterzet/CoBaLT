@@ -49,16 +49,14 @@ void AWT::initializeAWT(int _n, double _x, double _kT)
         std::cerr << "insufficient memory!" << std::endl;  // std::cerr
         exit(1);
     }
-    // data is allocated, the argument of fftw_malloc defines the size of the input array as nnDFT = 4*n +4
-    yINTER = (fftw_complex *) fftw_malloc(nn * sizeof(fftw_complex));
-    // this informs you whenever there is no space to store yDFT
-    if(yINTER == NULL)
+
+    // ASK!!!!, it is probably required because of variable type mismatch
+    yDFT = (complex<double> *) fftw_malloc(nn * sizeof(fftw_complex));
+    if(yDFT == NULL)
     {
         std::cerr << "insufficient memory!" << std::endl;
         exit(1);
     }
-    // ASK!!!!, it is probably required because of variable type mismatch
-    yDFT = (complex<double> *) yINTER;
     // A plan forwardFFT is created for forward fast Fourier transform
     forwardFFT  = fftw_plan_dft_1d(nn, (fftw_complex *) y, (fftw_complex *) yDFT, FFTW_FORWARD, FFTW_METHOD | FFTW_PRESERVE_INPUT);
     // A plan fbackwardFFT is created forbackward fast Fourier transform
@@ -71,7 +69,7 @@ void AWT::initializeAWT(int _n, double _x, double _kT)
 AWT::~AWT()
 {
     fftw_free(y);
-    fftw_free(yINTER);
+    fftw_free(yDFT);
     fftw_destroy_plan(forwardFFT);
     fftw_destroy_plan(backwardFFT);
 }
@@ -149,7 +147,7 @@ void AWT::setFDder(int _n, double _x, double _kT)
     }
     else
     {
-                                                 y[0] = -1.0*exp( +1e-12)/( exp( +1e-12) + 1 );
+                                                 y[0] = -1.0*exp( +1e-12)/( exp( +1e-12) + 1 )/( exp( +1e-12) + 1 );
         for(int i=1;      i < _n + 1; i++)       y[i] = -1.0*exp(i*_x/ (_n * _kT) )/( exp(i*_x/ (_n * _kT)  ) + 1 )/( exp(i*_x/ (_n * _kT)  ) + 1 )/_kT;
         for(int i=_n + 1; i < 3*_n + 4; i++)     y[i] = 0;
         for(int i=3*_n+4; i < 4*_n + 4; i++)     y[i] = -1.0*exp(  (i - 4*_n -4)*_x / (_n *_kT)  ) /( exp(  (i - 4*_n -4)*_x / (_n *_kT)  ) + 1 )/( exp(  (i - 4*_n -4)*_x / (_n *_kT)  ) + 1 )/_kT;

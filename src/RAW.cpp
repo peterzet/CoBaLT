@@ -54,10 +54,6 @@ void rawF::exportFUNasFUN(string name, int div, double range, double mult)
 }
 
 
-complex<double> & rawF::operator[](int i)
-{
-    assert( (i<=n) && (i>=-n) );
-    return(f[i >= 0 ? i : 2*n + i]);
-}
+
 
 

@@ -27,10 +27,7 @@
 
 
 // PARQUETS EFFECTIVE INTERACTION APPROX
-void dynamic_spins_matrix(string);
 void static_spins_matrix(string);
-void static_spins_specs(string);
-void static_Lp(string);
 
 
 
