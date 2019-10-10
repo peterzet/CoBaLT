@@ -29,8 +29,13 @@
 
 
 // PARQUETS EFFECTIVE INTERACTION APPROX
+<<<<<<< HEAD:src/static/static_SSN.h
 void static_spinpolarized_SSN(string);
 void check_transformation(string);
+=======
+void static_spins_matrix(string);
+
+>>>>>>> 28edc89875cdd5629fa04c88425db681a5bb03bb:src/static/static_spin_polarized_nov2018.h
 
 
 #endif // EFFECTIVE_DYNSPINMAT_H

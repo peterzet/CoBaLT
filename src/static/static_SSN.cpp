@@ -59,13 +59,13 @@ void lorentz_propagator(info in, AWT & G)
 
 double hybridization_SIAM_const(info in, int i)
 {
-    //cout << "hybridization function of SIAM with constant DOS is inserted" << endl;
+    // hybridization function of SIAM with constant DOS is inserted
     return in.delta;
 }
 
 double hybridization_SSN_transformed(info in, int i)
 {
-    //cout << "hybridization function of the SSN structure with rotation trick inserted" << endl;
+    // hybridization function of the SSN structure with rotation trick inserted
     return in.delta;
 }
 
