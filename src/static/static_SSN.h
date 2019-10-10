@@ -4,11 +4,13 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-#ifndef EFFECTIVE_STAT_SPINPOLARIZED_H
-#define EFFECTIVE_STAT_SPINPOLARIZED_H
+#ifndef EFFECTIVE_DYNSPINMAT_H
+#define EFFECTIVE_DYNSPINMAT_H
 
 
 #include "../Calculator.h"
+#include "../global.h"
+
 
 #include <iostream>         // standard library for reading inputs
 #include <fstream>          // standard library for showing outputs
@@ -27,8 +29,8 @@
 
 
 // PARQUETS EFFECTIVE INTERACTION APPROX
-void static_spins_matrix(string);
+void static_spinpolarized_SSN(string);
+void check_transformation(string);
 
 
-
-#endif // EFFECTIVE_STAT_SPINPOLARIZED_H
+#endif // EFFECTIVE_DYNSPINMAT_H

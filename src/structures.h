@@ -20,12 +20,17 @@
 
 
 
-//// Acronym AUX stands for auxiliary functions
-struct AUX
+//// Acronym AWT stands for ArrayWithTails
+
+struct auxiliary
 {
     public:
-        AUX();
-        ~AUX();
+        auxiliary();
+        ~auxiliary();
+
+        AWT FD;
+        AWT BE;
+        AWT K3;
 
         AWT aux1;
         AWT aux2;
@@ -33,6 +38,7 @@ struct AUX
         AWT aux4;
         AWT aux5;
         AWT aux6;
+        AWT aux7;
 
     void initialize(int,double,double);
 
@@ -45,7 +51,8 @@ struct AUX
 struct info
 {
     public:
-        double delta, mu, gammaS, phi, gap;
+        double delta, gammaS, phi, gap;
+        double kT, U, h, mu;
         string model;
         // intialization of iteration parameters
         double kT_min, kT_increment, kT_max;
@@ -69,7 +76,8 @@ struct info
         // previously initialized variables are set to values from the input file
 
 
-        void importing(string input);
+        void default_input();
+        void import(string input);
         void precisions();
         void iterations();
 

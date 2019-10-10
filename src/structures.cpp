@@ -20,32 +20,67 @@
 #include <iomanip> // setprecision
 
 
-AUX::AUX()
-{
-    AWT aux1;
-    AWT aux2;
-    AWT aux3;
-    AWT aux4;
-    AWT aux5;
-    AWT aux6;
-}
+auxiliary::auxiliary(){    initialize(0, 0, 0);}
 
-void AUX::initialize(int n, double x, double kT)
+void auxiliary::initialize(int n, double x, double kT)
 {
+
+    FD.initializeAWT(n, x, kT);
+    BE.initializeAWT(n, x, kT);
+    K3.initializeAWT(n, x, kT);
+
+    FD.setFD(n, x, kT);
+    BE.setBE(n, x, kT);
+
+    K3.Kernel3();
+
     aux1.initializeAWT(n, x, kT);
     aux2.initializeAWT(n, x, kT);
     aux3.initializeAWT(n, x, kT);
     aux4.initializeAWT(n, x, kT);
     aux5.initializeAWT(n, x, kT);
     aux6.initializeAWT(n, x, kT);
+    aux7.initializeAWT(n, x, kT);
 }
 
-AUX::~AUX()
+auxiliary::~auxiliary()
 {
 
 }
 
-void info::importing(string name)
+
+void info::default_input()
+{
+    delta = 1;
+    gap = 0;
+    gammaS = 0;
+    phi = 0;
+    model = "SIAM";
+    kT = 0;
+    U = 0;
+    h = 0;
+    mu = 0;
+    xMax = 10;
+    n = 1000;
+    display = 10;
+    range = 10;
+    kT_min = 0;
+    kT_increment = 0;
+    kT_max = 0;
+    U_min = 0;
+    U_increment = 0;
+    U_max = 0;
+    x_min = 0;
+    x_increment = 0;
+    x_max = 0;
+    h_min = 0;
+    h_increment = 0;
+    h_max = 0;
+    print_mode = 0;
+    output_mode = "cx11";
+}
+
+void info::import(string name)
 {
 
     ifstream ListFile;
@@ -74,75 +109,58 @@ void info::importing(string name)
     for(int i=0; i<entries; i++)
     {
 
-        if (input_entries[i].compare("delta:")         == 0)         delta = boost::lexical_cast<double>(input_entries[i+1]);
-        if (input_entries[i].compare("mu:")            == 0)            mu = boost::lexical_cast<double>(input_entries[i+1]);
-        if (input_entries[i].compare("gap:")           == 0)           gap = boost::lexical_cast<double>(input_entries[i+1]);
-        if (input_entries[i].compare("gammaS:")        == 0)        gammaS = boost::lexical_cast<double>(input_entries[i+1]);
-        if (input_entries[i].compare("phi:")           == 0)           phi = boost::lexical_cast<double>(input_entries[i+1]);
-        if (input_entries[i].compare("model:")         == 0)         model = boost::lexical_cast<string>(input_entries[i+1]);
+        if (input_entries[i].compare("delta:")   == 0)         delta = boost::lexical_cast<double>(input_entries[i+1]);
+        if (input_entries[i].compare("gap:")     == 0)           gap = boost::lexical_cast<double>(input_entries[i+1]);
+        if (input_entries[i].compare("gammaS:")  == 0)        gammaS = boost::lexical_cast<double>(input_entries[i+1]);
+        if (input_entries[i].compare("phi:")     == 0)           phi = boost::lexical_cast<double>(input_entries[i+1]);
+        if (input_entries[i].compare("model:")   == 0)         model = boost::lexical_cast<string>(input_entries[i+1]);
+        if (input_entries[i].compare("kT:")      == 0)            kT = boost::lexical_cast<double>(input_entries[i+1]);
+        if (input_entries[i].compare("U:")       == 0)             U = boost::lexical_cast<double>(input_entries[i+1]);
+        if (input_entries[i].compare("h:")       == 0)             h = boost::lexical_cast<double>(input_entries[i+1]);
+        if (input_entries[i].compare("mu:")      == 0)            mu = boost::lexical_cast<double>(input_entries[i+1]);
+        if (input_entries[i].compare("xMax:")    == 0)          xMax = boost::lexical_cast<double>(input_entries[i+1]);
+        if (input_entries[i].compare("n:")       == 0)             n = boost::lexical_cast<int>(input_entries[i+1]);
+        if (input_entries[i].compare("display:") == 0)       display = boost::lexical_cast<int>(input_entries[i+1]);
+        if (input_entries[i].compare("range:")   == 0)         range = boost::lexical_cast<int>(input_entries[i+1]);
+        if (input_entries[i].compare("physics:") == 0)       physics = boost::lexical_cast<string>(item);
 
 
-        if ( (input_entries[i].compare("kT") == 0) &&  (input_entries[i+1].compare("min:") == 0)   )
-                                                                    kT_min = boost::lexical_cast<double>(input_entries[i+2]);
+        if (input_entries[i].compare("kT") == 0)
+        {
+            if(input_entries[i+1].compare("min:")       == 0)        kT_min = boost::lexical_cast<double>(input_entries[i+2]);
+            if(input_entries[i+1].compare("increment:") == 0)  kT_increment = boost::lexical_cast<double>(input_entries[i+2]);
+            if(input_entries[i+1].compare("min:")       == 0)        kT_max = boost::lexical_cast<double>(input_entries[i+2]);
+        }
 
-        if ( (input_entries[i].compare("kT") == 0) &&  (input_entries[i+1].compare("increment:") == 0)   )
-                                                              kT_increment = boost::lexical_cast<double>(input_entries[i+2]);
+        if (input_entries[i].compare("U") == 0)
+        {
+            if(input_entries[i+1].compare("min:")       == 0)         U_min = boost::lexical_cast<double>(input_entries[i+2]);
+            if(input_entries[i+1].compare("increment:") == 0)   U_increment = boost::lexical_cast<double>(input_entries[i+2]);
+            if(input_entries[i+1].compare("min:")       == 0)         U_max = boost::lexical_cast<double>(input_entries[i+2]);
+        }
 
-        if ( (input_entries[i].compare("kT") == 0) &&  (input_entries[i+1].compare("max:") == 0)   )
-                                                                    kT_max = boost::lexical_cast<double>(input_entries[i+2]);
+        if (input_entries[i].compare("x") == 0)
+        {
+            if(input_entries[i+1].compare("min:")       == 0)         x_min = boost::lexical_cast<double>(input_entries[i+2]);
+            if(input_entries[i+1].compare("increment:") == 0)   x_increment = boost::lexical_cast<double>(input_entries[i+2]);
+            if(input_entries[i+1].compare("min:")       == 0)         x_max = boost::lexical_cast<double>(input_entries[i+2]);
+        }
 
-
-
-        if ( (input_entries[i].compare("U") == 0) &&  (input_entries[i+1].compare("min:") == 0)   )
-                                                                    U_min = boost::lexical_cast<double>(input_entries[i+2]);
-
-        if ( (input_entries[i].compare("U") == 0) &&  (input_entries[i+1].compare("increment:") == 0)   )
-                                                              U_increment = boost::lexical_cast<double>(input_entries[i+2]);
-
-        if ( (input_entries[i].compare("U") == 0) &&  (input_entries[i+1].compare("max:") == 0)   )
-                                                                    U_max = boost::lexical_cast<double>(input_entries[i+2]);
-
-
-
-        if ( (input_entries[i].compare("x") == 0) &&  (input_entries[i+1].compare("min:") == 0)   )
-                                                                    x_min = boost::lexical_cast<double>(input_entries[i+2]);
-
-        if ( (input_entries[i].compare("x") == 0) &&  (input_entries[i+1].compare("increment:") == 0)   )
-                                                              x_increment = boost::lexical_cast<double>(input_entries[i+2]);
-
-        if ( (input_entries[i].compare("x") == 0) &&  (input_entries[i+1].compare("max:") == 0)   )
-                                                                    x_max = boost::lexical_cast<double>(input_entries[i+2]);
+        if (input_entries[i].compare("h") == 0)
+        {
+            if(input_entries[i+1].compare("min:")       == 0)         h_min = boost::lexical_cast<double>(input_entries[i+2]);
+            if(input_entries[i+1].compare("increment:") == 0)   h_increment = boost::lexical_cast<double>(input_entries[i+2]);
+            if(input_entries[i+1].compare("min:")       == 0)         h_max = boost::lexical_cast<double>(input_entries[i+2]);
+        }
 
 
-
-        if ( (input_entries[i].compare("h") == 0) &&  (input_entries[i+1].compare("min:") == 0)   )
-                                                                    h_min = boost::lexical_cast<double>(input_entries[i+2]);
-
-        if ( (input_entries[i].compare("h") == 0) &&  (input_entries[i+1].compare("increment:") == 0)   )
-                                                              h_increment = boost::lexical_cast<double>(input_entries[i+2]);
-
-        if ( (input_entries[i].compare("h") == 0) &&  (input_entries[i+1].compare("max:") == 0)   )
-                                                                    h_max = boost::lexical_cast<double>(input_entries[i+2]);
-
-
-        if (input_entries[i].compare("xMax:")    == 0)              xMax = boost::lexical_cast<double>(input_entries[i+1]);
-        if (input_entries[i].compare("n:")       == 0)                 n = boost::lexical_cast<int>(input_entries[i+1]);
-        if (input_entries[i].compare("display:") == 0)           display = boost::lexical_cast<int>(input_entries[i+1]);
-        if (input_entries[i].compare("range:")   == 0)             range = boost::lexical_cast<int>(input_entries[i+1]);
-
-
-        if ( (input_entries[i].compare("print") == 0) &&  (input_entries[i+1].compare("mode:") == 0)   )
-                                                              print_mode = boost::lexical_cast<int>(input_entries[i+2]);
-
-        if ( (input_entries[i].compare("export") == 0) &&  (input_entries[i+1].compare("mode:") == 0)   )
-                                                              output_mode = boost::lexical_cast<string>(input_entries[i+2]);
-
-        if (input_entries[i].compare("physics:") == 0)            physics = boost::lexical_cast<string>(item);
-
+        if (input_entries[i].compare("mode") == 0)
+        {
+            if(input_entries[i-1].compare("print:")     == 0)    print_mode = boost::lexical_cast<int>(input_entries[i-1]);
+            if(input_entries[i-1].compare("export:")    == 0)   output_mode = boost::lexical_cast<string>(input_entries[i-1]);
+        }
 
     }
-
-
 }
 
 
@@ -392,7 +410,6 @@ void multiply_tensor(tensor & in, complex<double> val)
     in.mmm = ( in.mmm ) * val;
 }
 
-
 void integrate_tensor(AWT & in, tensor & out, int ind1, int ind2, int ind3)
 {
     if( ind1 ==  1 && ind2 ==  1 && ind3 ==  1)  { out.ppp = Simpson(in); }
@@ -407,7 +424,6 @@ void integrate_tensor(AWT & in, tensor & out, int ind1, int ind2, int ind3)
 
     if( ind1 == -1 && ind2 == -1 && ind3 == -1)  { out.mmm = Simpson(in);  }
 }
-
 
 void subtract_tensors(tensor & out, tensor & in1, tensor & in2)
 {

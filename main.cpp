@@ -1,23 +1,11 @@
+#include "src/physics.h"
 #include "src/AWT.h"
 #include "src/structures.h"
-#include "src/physics.h"
-
-// files for static problems
-//#include "src/static/static_T0.h"
-#include "src/static/static_spin_polarized_nov2018.h"
-
-// files for dynamic problems
-//#include "src/dynamic/dynamic_spinles_experimental.h"
-//#include "src/dynamic/dynamic_spinles.h"
-//#include "src/dynamic/dynamic_spins.h"
-//#include "src/dynamic/dynamic_spins_half.h"
-
-
-// files for convolution test
+#include "src/static/static_SSN.h"
 #include "src/test/test.h"
 
 
-
+#include <boost/math/tools/minima.hpp>
 #include <cassert>          // error handling library, function assert to terminate the program
 #include <cmath>            // declares some common mathematical operations and transformation
 #include <cstdlib>          // several general purpose functions, including dynamic memory management,
@@ -25,14 +13,14 @@
                             // integer arithmetics, searching, sorting and converting
 #include <fftw3.h>          // FFTW library
 #include <fstream>          // standard library for showing outputs
+
 #include <iostream>         // standard library for reading inputs
+
 #include <string>           // standard library for manipultaing strings
 #include <sstream>
 #include <vector>
 #include <iomanip> // setprecision
 
-// boost libraries
-#include <boost/math/tools/minima.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 
@@ -41,24 +29,37 @@
 using namespace std;
 
 
-
 int main()
 {
     info input;
 	string name = "input";
-	input.importing(name);
+	input.default_input();
+	input.import(name);
 
 
-    //test_convolutions(input.n, input.xMax, input.range, input.output_mode);
-    //dynamic_spins_half(name);
-    //Effective_dynamic_2(name);
-    //dynamic_spins_matrix(name);
-    static_spins_matrix(name);
-    //static_spins_specs(name);
+	// default physical model
+	void (*methodPtr)(string) = static_spinpolarized_SSN;
 
-    //static_Lp(name);
-    //static_T_zero(name);
+    if(input.model.compare("convolution_test")==0)
+    {
+        // FIX: rewrite the test functions to use the structure info
+        //test_convolutions(input.n, input.xMax, input.range, input.output_mode);
+        //methodPtr = hybridization_SSN_transformed;
+        cout << "hybridization function of the SSN structure with rotation trick inserted" << endl;
+    }
+
+
+
+	// actual call of the procedure to calculate the model
+	(*methodPtr)(name);
+
+
+
+
+
 
 
     return 0;
 }
+
+
